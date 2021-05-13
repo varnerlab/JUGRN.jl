@@ -60,9 +60,11 @@ function transfer_distribution_file(path_to_distribution_files::String,
 
     # Write the file to the output -
     path_to_program_file = path_to_output_files*"/"*output_file_name_with_extension
-    outfile = open(path_to_program_file, "w")
-    write(outfile,src_buffer);
-    close(outfile);
+    open(path_to_program_file, "w") do f
+        for line in src_buffer
+            write(f,line)
+        end
+    end
 end
 
 function transfer_distribution_files(path_to_distribution_files::String,
@@ -210,10 +212,12 @@ function generate_default_project_file(path_to_project_file::String)::VLResult
 
     # ok, if we get here, then we have a clean place to generate the default project structure -
     # We need to two things for a project, the defaults file, and a blank network file with all the sections -
+    filename = basename(path_to_project_file)
+    path_to_output_files = dirname(path_to_project_file)
 
     # Transfer distrubtion files to the output -> these files are shared between model types -
     # TODO: replace w/joinpath?
-    transfer_distribution_files("$(_PATH_TO_SRC)/distribution/dynamic", "$(path_to_project_file)",".toml")
+    transfer_distribution_file("$(_PATH_TO_SRC)/distribution/dynamic", filename, path_to_output_files, filename)
 
     # ok, so return nothing if everything worked ...
     return VLResult(nothing)

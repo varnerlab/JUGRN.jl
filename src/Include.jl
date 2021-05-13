@@ -51,6 +51,8 @@ using Test
 using TOML
 using FASTX
 using Logging
+using JSON
+using DataFrames
 
 # includes -
 include("Types.jl")
