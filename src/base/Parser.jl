@@ -6,7 +6,7 @@ function _build_species_table(model_dictionary::Dict{String,Any})::DataFrame
     try
 
         # ok, so lets build an intermediate representation that is a bunch of DataFrames -
-        list_of_species_dictionaries = grn_model_dictionary["list_of_species"]
+        list_of_species_dictionaries = model_dictionary["list_of_species"]
         for species_dictionary in list_of_species_dictionaries
             
             # grab -
@@ -39,6 +39,12 @@ function _build_species_table(model_dictionary::Dict{String,Any})::DataFrame
 end
 
 # == PUBLIC METHODS BELOW HERE ==================================================================== #
+
+"""
+    read_model_document(model::VLJuliaModelObject) -> VLResult
+
+This documentation is going to be awesome. 
+"""
 function read_model_document(model::VLJuliaModelObject)::VLResult
 
     # initialize -
@@ -53,7 +59,7 @@ function read_model_document(model::VLJuliaModelObject)::VLResult
         json_model_dictionary = JSON.parsefile(path_to_model_file)
         
         # 1. Build a species table -
-        intermediate_representation_dictionary["model_species_table"] = json_model_dictionary
+        intermediate_representation_dictionary["model_species_table"] = _build_species_table(json_model_dictionary)
 
         # return -
         return VLResult(intermediate_representation_dictionary)
