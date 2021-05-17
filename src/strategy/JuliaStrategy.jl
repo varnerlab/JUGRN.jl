@@ -71,7 +71,7 @@ end
 function _build_sequence_length_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
 
     # initialize -
-    
+
 end
 
 # == MAIN METHODS BELOW HERE ======================================================================= #
@@ -133,13 +133,39 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
 
     # initialize -
     filename = "Kinetics.jl"
-    buffer = Array{String,1}()
     template_dictionary = Dict{String,Any}()
 
     try
 
+        # build snippets -
+        template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
 
 
+        # setup the template -
+        template = mt"""
+        {{copyright_header_text}}
+
+        function calculate_transcription_kinetic_limit(t::Float64,x::Array{Float64,1},problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            
+            # initialize -
+            kinetic_limit_array = Array{Float64,1}()
+            
+            
+        
+            # return -
+            return kinetic_limit_array
+        end
+
+        """
+
+        # render step -
+        flat_buffer = render(template, template_dictionary)
+        
+        # package up into a NamedTuple -
+        program_component = (buffer=flat_buffer, filename=filename, component_type=:buffer)
+
+        # return -
+        return program_component
     catch error
         rethrow(error)
     end
