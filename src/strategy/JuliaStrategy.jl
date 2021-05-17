@@ -25,14 +25,53 @@ function _build_ic_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{
             value = default_dictionary["problem_dictionary"]["PROTEIN_initial_condition"]
         end
 
-        +(ic_buffer,"$(value)\t;\t#\t$(species_index)\t$(species_symbol)\n"; prefix="\t\t\t")
+        +(ic_buffer,"$(value)\t;\t#\t$(species_index)\t$(species_symbol)\tunits: nM\n"; prefix="\t\t\t")
     end
 
-    +(ic_buffer,"]"; prefix="\t\t",suffix="\n")
+    +(ic_buffer,"]"; prefix="\t\t")
     
+    # flatten and return -
     flat_ic_buffer = ""
     [flat_ic_buffer *= line for line in ic_buffer]
     return flat_ic_buffer
+end
+
+function _build_system_species_concentration_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+
+    # initialize -
+    system_buffer = Array{String,1}()
+
+    # get the system block -
+    system_dictionary_array = ir_dictionary["system_dictionary"]["list_of_system_species"]
+
+    # here we go - open
+    +(system_buffer, "system_concentration_array = ["; suffix="\n")
+    for (index,system_species_dictionary) in enumerate(system_dictionary_array)
+        
+        # ok, block will be a dictionary with a value, and units keys - 
+        value = system_species_dictionary["concentration"]
+        units = system_species_dictionary["units"]
+        symbol = system_species_dictionary["symbol"]
+
+        # build the line -
+        +(system_buffer, "$(value)\t;\t#\t$(symbol)\tunits: $(units)"; suffix="\n", prefix="\t\t\t")
+
+    end
+
+    # close -
+    +(system_buffer,"]"; prefix="\t\t")
+
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in system_buffer]
+    return flat_buffer
+end
+
+function _build_sequence_length_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+
+    # initialize -
+    
 end
 
 # == MAIN METHODS BELOW HERE ======================================================================= #
@@ -48,6 +87,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
         # build the snippets required by the 
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
         template_dictionary["initial_condition_array_block"] = _build_ic_array_snippet(model, ir_dictionary)
+        template_dictionary["system_species_array_block"] = _build_system_species_concentration_snippet(model, ir_dictionary)
 
         # write the template -
         template = mt"""
@@ -59,11 +99,15 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
 
             try
 
-                # build the initial condition array -
+                # build the species initial condition array -
                 {{initial_condition_array_block}}
+
+                # build the system species concentration array -
+                {{system_species_array_block}}
 
                 # == DO NOT EDIT BELOW THIS LINE ======================================================= #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
+                problem_dictionary["system_concentration_array"] = system_concentration_array
                 return problem_dictionary
                 # ====================================================================================== #
             catch error
@@ -81,7 +125,23 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
         # return -
         return program_component
     catch error
-        throw(error)
+        rethrow(error)
+    end
+end
+
+function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
+
+    # initialize -
+    filename = "Kinetics.jl"
+    buffer = Array{String,1}()
+    template_dictionary = Dict{String,Any}()
+
+    try
+
+
+
+    catch error
+        rethrow(error)
     end
 end
 # ================================================================================================= #

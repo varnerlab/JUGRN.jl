@@ -1,4 +1,11 @@
 [problem_dictionary]
-DNA_initial_condition=5.0      # nM
-RNA_initial_condition=0.0      # nM
+
+# initial concentrations -
+DNA_initial_condition=5.0       # nM
+RNA_initial_condition=0.0       # nM
 PROTEIN_initial_condition=0.0   # nM
+
+# lengths -
+DNA_default_length=1000         # nt
+RNA_default_length=1000         # nt
+PROTEIN_default_length=333      # nt

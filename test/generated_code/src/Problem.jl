@@ -29,19 +29,27 @@ function generate_problem_dictionary()::Dict{String,Any}
 
     try
 
-        # build the initial condition array -
+        # build the species initial condition array -
         initial_condition_array = [
-			5.0	;	#	1	gene_gntR
-			5.0	;	#	2	gene_venus
-			0.0	;	#	3	mRNA_gntR
-			0.0	;	#	4	mRNA_venus
-			0.0	;	#	5	P_gntR
-			0.0	;	#	6	P_venus
+			5.0	;	#	1	gene_gntR	units: nM
+			5.0	;	#	2	gene_venus	units: nM
+			0.0	;	#	3	mRNA_gntR	units: nM
+			0.0	;	#	4	mRNA_venus	units: nM
+			0.0	;	#	5	P_gntR	units: nM
+			0.0	;	#	6	P_venus	units: nM
 		]
 
+        # build the system species concentration array -
+        system_concentration_array = [
+			0.07	;	#	RNAP	units: µM
+			0.07	;	#	RIBOSOME	units: µM
+			1.0	;	#	σ70	units: µM
+			1.0	;	#	M_gluconate_c	units: µM
+		]
 
         # == DO NOT EDIT BELOW THIS LINE ======================================================= #
         problem_dictionary["initial_condition_array"] = initial_condition_array
+        problem_dictionary["system_concentration_array"] = system_concentration_array
         return problem_dictionary
         # ====================================================================================== #
     catch error

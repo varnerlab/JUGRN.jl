@@ -61,6 +61,9 @@ function read_model_document(model::VLJuliaModelObject)::VLResult
         # 1. Build a species table -
         intermediate_representation_dictionary["model_species_table"] = _build_species_table(json_model_dictionary)
 
+        # 2. Grab the system dictionary -
+        intermediate_representation_dictionary["system_dictionary"] = json_model_dictionary["system"]
+
         # return -
         return VLResult(intermediate_representation_dictionary)
     catch error

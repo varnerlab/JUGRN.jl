@@ -1,11 +1,27 @@
 {
     "system": {
-        "parameters": {
-            "RNAP": 0.07,
-            "RIBOSOME": 0.07,
-            "sigma70": 0.1,
-            "gluconate": 0.1
-        },
+        "list_of_system_species": [
+            {
+                "symbol": "RNAP",
+                "concentration": 0.07,
+                "units": "µM"
+            },
+            {
+                "symbol": "RIBOSOME",
+                "concentration": 0.07,
+                "units": "µM"
+            },
+            {
+                "symbol": "σ70",
+                "concentration": 1.0,
+                "units": "µM"
+            },
+            {
+                "symbol": "M_gluconate_c",
+                "concentration": 1.0,
+                "units": "µM"
+            }
+        ],
         "host": "CF_PURE"
     },
     "list_of_species": [

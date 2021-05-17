@@ -33,12 +33,16 @@ function make_julia_model(problem::VLJuliaModelObject;
         default_dictionary = TOML.parsefile(path_to_defaults_file)
         ir_dictionary["default_dictionary"] = default_dictionary
 
-        # Step 1: Copy the "distribution" files to thier location -
+        # Step 1: Generate the "distribution" files, copy to thier location -
         path_to_output_dir = problem.path_to_output_dir
 
         # build the problem dictionary -
         data_dictionary_component = generate_data_dictionary_program_component(problem, ir_dictionary)
         push!(src_component_set, data_dictionary_component)
+
+        # build Kinetics.jl program component -
+        kinetics_program_component = generate_kinetics_program_component(problem, ir_dictionary)
+        push!(src_component_set, kinetics_program_component)
 
         # dump src components to disk -
         _output_path_to_src_distribution_files = joinpath(path_to_output_dir, "src")
