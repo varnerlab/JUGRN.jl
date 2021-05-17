@@ -22,46 +22,64 @@
 # THE SOFTWARE.
 # ----------------------------------------------------------------------------------- #
 
-function generate_problem_dictionary()::Dict{String,Any}
+function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float64,1}, 
+    problem_dictionary::Dict{String,Any})::Array{Float64,1}
     
     # initialize -
-    problem_dictionary = Dict{String,Any}()
-    system_type_flag = 	:CF_PURE
+    kinetic_limit_array = Array{Float64,1}()
+    
+    # alias the model species -
+    gene_gntR = x[1]
+	gene_venus = x[2]
+	mRNA_gntR = x[3]
+	mRNA_venus = x[4]
+	P_gntR = x[5]
+	P_venus = x[6]
 
-    try
+    
 
-        # open a connection to the parameters db -
+    # return -
+    return kinetic_limit_array
+end
 
+function calculate_translation_kinetic_limit_array(t::Float64, x::Array{Float64,1}, 
+    problem_dictionary::Dict{String,Any})::Array{Float64,1}
 
-        # build the species initial condition array -
-        initial_condition_array = [
-			5.0	;	#	1	gene_gntR	units: nM
-			5.0	;	#	2	gene_venus	units: nM
-			0.0	;	#	3	mRNA_gntR	units: nM
-			0.0	;	#	4	mRNA_venus	units: nM
-			0.0	;	#	5	P_gntR	units: nM
-			0.0	;	#	6	P_venus	units: nM
-		]
+    # initialize -
+    kinetic_limit_array = Array{Float64,1}()
+    
+    # alias the model species -
+    gene_gntR = x[1]
+	gene_venus = x[2]
+	mRNA_gntR = x[3]
+	mRNA_venus = x[4]
+	P_gntR = x[5]
+	P_venus = x[6]
 
-        # build the system species concentration array -
-        system_concentration_array = [
-			0.07	;	#	RNAP	units: µM
-			0.07	;	#	RIBOSOME	units: µM
-			1.0	    ;	#	σ70	units: µM
-			1.0	    ;	#	M_gluconate_c	units: µM
-		]
+    
+    
 
-        
+    # return -
+    return kinetic_limit_array
+end
 
+function calculate_dilution_degradation_array(t::Float64, x::Array{Float64,1}, 
+    problem_dictionary::Dict{String,Any})::Array{Float64,1}
+    
+    # initialize -
+    degradation_dilution_array = Array{Float64,1}()
+    
+    # alias the model species -
+    gene_gntR = x[1]
+	gene_venus = x[2]
+	mRNA_gntR = x[3]
+	mRNA_venus = x[4]
+	P_gntR = x[5]
+	P_venus = x[6]
 
-        # == DO NOT EDIT BELOW THIS LINE ======================================================= #
-        problem_dictionary["initial_condition_array"] = initial_condition_array
-        problem_dictionary["system_concentration_array"] = system_concentration_array
+    
+    
 
-        # return -
-        return problem_dictionary
-        # ====================================================================================== #
-    catch error
-        throw(error)
-    end
+    # return -
+    return degradation_dilution_array
 end

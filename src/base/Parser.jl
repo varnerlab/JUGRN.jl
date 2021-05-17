@@ -6,7 +6,7 @@ function _build_species_table(model_dictionary::Dict{String,Any})::DataFrame
     try
 
         # ok, so lets build an intermediate representation that is a bunch of DataFrames -
-        list_of_species_dictionaries = model_dictionary["list_of_species"]
+        list_of_species_dictionaries = model_dictionary["list_of_model_species"]
         for species_dictionary in list_of_species_dictionaries
             
             # grab -

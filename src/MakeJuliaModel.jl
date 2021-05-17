@@ -44,6 +44,10 @@ function make_julia_model(problem::VLJuliaModelObject;
         kinetics_program_component = generate_kinetics_program_component(problem, ir_dictionary)
         push!(src_component_set, kinetics_program_component)
 
+        # build Balances.jl program component -
+        balances_program_component = generate_balances_program_component(problem, ir_dictionary)
+        push!(src_component_set, balances_program_component)
+
         # dump src components to disk -
         _output_path_to_src_distribution_files = joinpath(path_to_output_dir, "src")
         write_program_components_to_disk(_output_path_to_src_distribution_files, src_component_set)

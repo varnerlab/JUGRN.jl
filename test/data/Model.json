@@ -24,7 +24,7 @@
         ],
         "system_type": "CF_PURE"
     },
-    "list_of_species": [
+    "list_of_model_species": [
         {
             "symbol": "gene_gntR",
             "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRN.jl/test/data/seq/gene.fna",
