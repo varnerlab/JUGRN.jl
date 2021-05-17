@@ -22,7 +22,7 @@
                 "units": "µM"
             }
         ],
-        "host": "CF_PURE"
+        "system_type": "CF_PURE"
     },
     "list_of_species": [
         {
