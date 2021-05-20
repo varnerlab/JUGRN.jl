@@ -12,6 +12,7 @@ function make_julia_model(problem::VLJuliaModelObject;
 
     # initialize -
     src_component_set = Set{NamedTuple}()
+    network_component_set = Set{NamedTuple}()
     
     try
 

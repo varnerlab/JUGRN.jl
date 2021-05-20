@@ -1,6 +1,5 @@
 import Base.+
 
-
 function +(buffer::Array{String,1}, content::String; 
     prefix::Union{String,Nothing}=nothing,suffix::Union{String,Nothing}=nothing)
     

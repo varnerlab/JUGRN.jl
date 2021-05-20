@@ -284,7 +284,7 @@ function generate_balances_program_component(model::VLJuliaModelObject,
         {{copyright_header_text}}
         function Balances(dx,x, problem_dictionary,t)
 
-            # get 
+            # system dimensions and structural matricies -
             number_of_states = problem_dictionary["number_of_states"]
             AM = problem_dictionary["dilution_degradation_matrix"]
             SM = problem_dictionary["stoichiometric_matrix"]
@@ -298,15 +298,15 @@ function generate_balances_program_component(model::VLJuliaModelObject,
             w = calculate_translation_control_array(t,x,problem_dictionary)
 
             # calculate the rate of transcription and translation -
-            r_TX = transcription_kinetic_limit_array.*u
-            r_TL = translation_kinetic_limit_array.*w
-            rV = [r_TX ; r_TL]
+            rX = transcription_kinetic_limit_array.*u
+            rL = translation_kinetic_limit_array.*w
+            rV = [rX ; rL]
 
             # calculate the degradation and dilution rates -
-            r_dd = calculate_dilution_degradation_array(t,x,problem_dictionary)
+            rd = calculate_dilution_degradation_array(t,x,problem_dictionary)
 
             # compute the model equations -
-            dxdt = SM*rV + AM*r_dd
+            dxdt = SM*rV + AM*rd
 
             # package -
             for index = 1:number_of_states
