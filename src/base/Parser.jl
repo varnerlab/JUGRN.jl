@@ -64,6 +64,9 @@ function read_model_document(model::VLJuliaModelObject)::VLResult
         # 2. Grab the system dictionary -
         intermediate_representation_dictionary["system_dictionary"] = json_model_dictionary["system"]
 
+        # 3. Grab the transcription models -
+        intermediate_representation_dictionary["list_of_transcription_models"] = json_model_dictionary["list_of_transcription_models"]
+
         # return -
         return VLResult(intermediate_representation_dictionary)
     catch error

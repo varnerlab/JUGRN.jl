@@ -45,6 +45,10 @@ function make_julia_model(problem::VLJuliaModelObject;
         kinetics_program_component = generate_kinetics_program_component(problem, ir_dictionary)
         push!(src_component_set, kinetics_program_component)
 
+        # build Control.jl program component -
+        control_program_component = generate_control_program_component(problem, ir_dictionary)
+        push!(src_component_set, control_program_component)
+
         # build Balances.jl program component -
         balances_program_component = generate_balances_program_component(problem, ir_dictionary)
         push!(src_component_set, balances_program_component)

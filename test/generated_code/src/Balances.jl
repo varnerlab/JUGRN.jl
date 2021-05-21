@@ -34,8 +34,8 @@ function Balances(dx,x, problem_dictionary,t)
     translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t,x,problem_dictionary)
     
     # calculate the TX and TL control array -
-    u = calculate_transcription_control_array(t,x,problem_dictionary)
-    w = calculate_translation_control_array(t,x,problem_dictionary)
+    u = calculate_transcription_control_array(t, x, problem_dictionary)
+    w = calculate_translation_control_array(t, x, problem_dictionary)
 
     # calculate the rate of transcription and translation -
     r_TX = transcription_kinetic_limit_array.*u

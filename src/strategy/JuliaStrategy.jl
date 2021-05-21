@@ -126,6 +126,9 @@ function _build_system_type_snippet(model::VLJuliaModelObject, ir_dictionary::Di
     return flat_buffer
 end
 
+function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+end
+
 # == MAIN METHODS BELOW HERE ======================================================================= #
 function generate_data_dictionary_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
 
@@ -312,6 +315,66 @@ function generate_balances_program_component(model::VLJuliaModelObject,
             for index = 1:number_of_states
                 dx[index] = dxdt[index]
             end
+        end
+        """
+
+        # render step -
+        flat_buffer = render(template, template_dictionary)
+        
+        # package up into a NamedTuple -
+        program_component = (buffer=flat_buffer, filename=filename, component_type=:buffer)
+
+        # return -
+        return program_component
+    catch error
+        rethrow(error)
+    end
+end
+
+function generate_control_program_component(model::VLJuliaModelObject, 
+    ir_dictionary::Dict{String,Any})::NamedTuple
+
+    # initialize -
+    filename = "Control.jl"
+    template_dictionary = Dict{String,Any}()
+
+    try
+
+        # build snippets -
+        template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
+        template_dictionary["u_variable_snippet"] = _build_u_variable_snippet(model,ir_dictionary)
+
+        # build template -
+        template=mt"""
+        {{copyright_header_text}}
+        
+        # binding function -
+        function f(x,K,n) = (x^n)/(K^n+x^n)
+        
+        # calculate the u-variables -
+        function calculate_transcription_control_array(t::Float64, x::Array{Float64,1}, 
+            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+
+            # initialize -
+            number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
+            u = Array{Float64,1}(undef,number_of_transcription_processes)
+
+            {{u_variable_snippet}}
+
+            # return -
+            return u
+        end
+
+        # calculate the w-variables -
+        function calculate_translation_control_array(t::Float64, x::Array{Float64,1}, 
+            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            
+            # defualt: w = 1 for all translation processes -
+            number_of_translation_processes = problem_dictionary["number_of_translation_processes"]
+            w = ones(number_of_translation_processes)
+            
+            # return -
+            return w
         end
         """
 
