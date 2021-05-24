@@ -13,6 +13,7 @@ function make_julia_model(problem::VLJuliaModelObject;
     # initialize -
     src_component_set = Set{NamedTuple}()
     network_component_set = Set{NamedTuple}()
+    root_component_set = Set{NamedTuple}()
     
     try
 
@@ -53,9 +54,16 @@ function make_julia_model(problem::VLJuliaModelObject;
         balances_program_component = generate_balances_program_component(problem, ir_dictionary)
         push!(src_component_set, balances_program_component)
 
+        # build the include program component -
+        include_program_component = generate_include_program_component(problem, ir_dictionary)
+        push!(root_component_set, include_program_component)
+
         # dump src components to disk -
         _output_path_to_src_distribution_files = joinpath(path_to_output_dir, "src")
         write_program_components_to_disk(_output_path_to_src_distribution_files, src_component_set)
+
+        # dump root components to disk -
+        write_program_components_to_disk(path_to_output_dir, root_component_set)
 
         # return -
         return VLResult(nothing)

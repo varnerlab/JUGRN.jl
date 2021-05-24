@@ -22,34 +22,23 @@
 # THE SOFTWARE.
 # ----------------------------------------------------------------------------------- #
 
-function Balances(dx,x, problem_dictionary,t)
 
-    # system dimensions and structural matricies -
-    number_of_states = problem_dictionary["number_of_states"]
-    AM = problem_dictionary["dilution_degradation_matrix"]
-    SM = problem_dictionary["stoichiometric_matrix"]
-     
-    # calculate the TX and TL kinetic limit array -
-    transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,problem_dictionary)
-    translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t,x,problem_dictionary)
-    
-    # calculate the TX and TL control array -
-    u = calculate_transcription_control_array(t,x,problem_dictionary)
-    w = calculate_translation_control_array(t,x,problem_dictionary)
+# setup paths -
+const _PATH_TO_ROOT = pwd()
+const _PATH_TO_SRC = joinpath(_PATH_TO_ROOT, "src")
 
-    # calculate the rate of transcription and translation -
-    rX = transcription_kinetic_limit_array.*u
-    rL = translation_kinetic_limit_array.*w
-    rV = [rX ; rL]
+# get packages -
+import Pkg
+Pkg.activate(_PATH_TO_ROOT)
+Pkg.add(name="DifferentialEquations")
+Pkg.add(name="VLModelParametersDB")
 
-    # calculate the degradation and dilution rates -
-    rd = calculate_dilution_degradation_array(t,x,problem_dictionary)
+# use packages -
+using DifferentialEquations
+using VLModelParametersDB
 
-    # compute the model equations -
-    dxdt = SM*rV + AM*rd
-
-    # package -
-    for index = 1:number_of_states
-        dx[index] = dxdt[index]
-    end
-end
+# include my codes -
+include("./src/Problem.jl")
+include("./src/Balances.jl")
+include("./src/Kinetics.jl")
+include("./src/Control.jl")

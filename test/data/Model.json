@@ -65,34 +65,34 @@
     "list_of_transcription_models": [
         {
             "title": "venus_promoter",
-            "RNAP_symbol": "RNAP",
+            "polymerase_symbol": "RNAP",
             "input": "gene_venus",
             "output": "mRNA_venus",
             "compartment": "system",
             "list_of_activators": [
                 {
-                    "symbol": "sigma70",
-                    "type": "positive"
+                    "symbol": "σ70",
+                    "type": "positive_sigma_factor"
                 }
             ],
             "list_of_repressors": [
                 {
                     "symbol": "P_gntR",
-                    "type": "negative",
-                    "agent": "gluconate"
+                    "type": "negative_protein_repressor",
+                    "counter_agent": "gluconate"
                 }
             ]
         },
         {
             "title": "gntR_promoter",
-            "RNAP_symbol": "RNAP",
+            "polymerase_symbol": "RNAP",
             "input": "gene_gntR",
             "output": "mRNA_gntR",
             "compartment": "system",
             "list_of_activators": [
                 {
-                    "symbol": "sigma70",
-                    "type": "positive"
+                    "symbol": "σ70",
+                    "type": "positive_sigma_factor"
                 }
             ],
             "list_of_repressors": []

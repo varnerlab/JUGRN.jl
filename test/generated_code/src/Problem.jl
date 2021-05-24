@@ -47,13 +47,11 @@ function generate_problem_dictionary()::Dict{String,Any}
         system_concentration_array = [
 			0.07	;	#	RNAP	units: µM
 			0.07	;	#	RIBOSOME	units: µM
-			1.0	    ;	#	σ70	units: µM
-			1.0	    ;	#	M_gluconate_c	units: µM
+			1.0	;	#	σ70	units: µM
+			1.0	;	#	M_gluconate_c	units: µM
 		]
 
         
-
-
         # == DO NOT EDIT BELOW THIS LINE ======================================================= #
         problem_dictionary["initial_condition_array"] = initial_condition_array
         problem_dictionary["system_concentration_array"] = system_concentration_array
