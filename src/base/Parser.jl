@@ -57,15 +57,31 @@ function read_model_document(model::VLJuliaModelObject)::VLResult
 
         # load the model JSON file -
         json_model_dictionary = JSON.parsefile(path_to_model_file)
-        
-        # 1. Build a species table -
-        intermediate_representation_dictionary["model_species_table"] = _build_species_table(json_model_dictionary)
 
-        # 2. Grab the system dictionary -
+        # get model species, transscription and translation models -
+        model_species_table = _build_species_table(json_model_dictionary)
+        list_of_transcription_models = json_model_dictionary["list_of_transcription_models"]
+        list_of_translation_models = json_model_dictionary["list_of_translation_models"]
+        
+        # how many species do we have?
+        (number_of_species, _) = size(model_species_table)
+
+        # setup up the system dimension -
+        intermediate_representation_dictionary["number_of_species"] = number_of_species
+        intermediate_representation_dictionary["number_of_transcription_models"] = length(list_of_transcription_models)
+        intermediate_representation_dictionary["number_of_translation_models"] = length(list_of_translation_models)
+
+        # Build a species table -
+        intermediate_representation_dictionary["model_species_table"] = model_species_table
+
+        # Grab the system dictionary -
         intermediate_representation_dictionary["system_dictionary"] = json_model_dictionary["system"]
 
-        # 3. Grab the transcription models -
-        intermediate_representation_dictionary["list_of_transcription_models"] = json_model_dictionary["list_of_transcription_models"]
+        # Grab the transcription models -
+        intermediate_representation_dictionary["list_of_transcription_models"] = list_of_transcription_models
+
+        # Grab the translation models -
+        intermediate_representation_dictionary["list_of_translation_models"] = list_of_translation_models
 
         # return -
         return VLResult(intermediate_representation_dictionary)

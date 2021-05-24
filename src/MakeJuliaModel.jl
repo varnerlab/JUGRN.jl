@@ -58,12 +58,20 @@ function make_julia_model(problem::VLJuliaModelObject;
         include_program_component = generate_include_program_component(problem, ir_dictionary)
         push!(root_component_set, include_program_component)
 
+        # build the stoichiometric_matrix -
+        stoichiometric_matrix_component = generate_stochiometric_matrix_component(ir_dictionary)
+        push!(network_component_set, stoichiometric_matrix_component)
+
         # dump src components to disk -
         _output_path_to_src_distribution_files = joinpath(path_to_output_dir, "src")
         write_program_components_to_disk(_output_path_to_src_distribution_files, src_component_set)
 
         # dump root components to disk -
         write_program_components_to_disk(path_to_output_dir, root_component_set)
+
+        # dump network components to disk -
+        _output_path_to_network_distribution_files = joinpath(_output_path_to_src_distribution_files, "network")
+        write_program_components_to_disk(_output_path_to_network_distribution_files, network_component_set)
 
         # return -
         return VLResult(nothing)
