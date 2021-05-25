@@ -142,13 +142,14 @@ function _build_system_species_alias_snippet(model::VLJuliaModelObject, ir_dicti
         # formulate system species line -
         line = "$(symbol) = system_array[$(index)]"
 
+        prefix="\t"
+        if (index==1)
+            prefix=""
+        end
+
         # add to buffer -
-        +(buffer, line; prefix="\t", suffix="\n")
+        +(buffer, line; prefix=prefix, suffix="\n")
     end
-
-    
-
-
 
     # flatten and return -
     flat_buffer = ""
@@ -272,6 +273,84 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
     return flat_buffer
 end
 
+function _build_transcription_kinetic_limit_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+
+    # get the species table -
+    model_species_table = ir_dictionary["model_species_table"]
+
+    # get the list of transcription models -
+    list_of_transcription_models = ir_dictionary["list_of_transcription_models"]
+    for (index,transcription_model_dictionary) in enumerate(list_of_transcription_models)
+        
+        # get the input et al -
+        input_string = transcription_model_dictionary["input"]
+        polymerase_symbol = transcription_model_dictionary["polymerase_symbol"]
+
+        # compute the length -
+        idx_symbol = findfirst(x->x==input_string,model_species_table[!,:symbol])
+        sequence = model_species_table[idx_symbol,:sequence]
+        L = FASTX.FASTA.seqlen(sequence)
+
+        # tmp_line = 
+        push_line = "push!(kinetic_limit_array, r(k_cat_characteristic,LX,$(L),$(polymerase_symbol),𝛕_$(input_string),K_$(input_string),$(input_string)))"
+
+        if (index == 1)
+            +(buffer,push_line; suffix="\n")
+        elseif (index==length(list_of_transcription_models))
+            +(buffer,push_line; prefix="\t")
+        else
+            +(buffer, push_line, prefix="\t",suffix="\n")
+        end
+    end
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
+function _build_translation_kinetic_limit_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+
+    # get the species table -
+    model_species_table = ir_dictionary["model_species_table"]
+
+    # get the list of transcription models -
+    list_of_models = ir_dictionary["list_of_translation_models"]
+    for (index, model_dictionary) in enumerate(list_of_models)
+        
+        # get the input et al -
+        output_string = model_dictionary["output"]
+        polymerase_symbol = model_dictionary["ribosome_symbol"]
+
+        # compute the length -
+        idx_symbol = findfirst(x->x==output_string,model_species_table[!,:symbol])
+        sequence = model_species_table[idx_symbol,:sequence]
+        L = FASTX.FASTA.seqlen(sequence)
+
+        # tmp_line = 
+        push_line = "push!(kinetic_limit_array, r(k_cat_characteristic,LL,$(L),$(polymerase_symbol),𝛕_$(output_string),K_$(output_string),$(output_string)))"
+
+        if (index == 1)
+            +(buffer,push_line; suffix="\n")
+        elseif (index==length(list_of_models))
+            +(buffer,push_line; prefix="\t")
+        else
+            +(buffer, push_line, prefix="\t",suffix="\n")
+        end
+    end
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
 # == MAIN METHODS BELOW HERE ======================================================================= #
 function generate_data_dictionary_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
 
@@ -299,9 +378,6 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
 
             try
 
-                # open a connection to the parameters db -
-                # ...
-
                 # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
                 SM = readdlm("./network/Network.dat")
                 DM = readdlm("./network/Degradation.dat")
@@ -312,9 +388,13 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
                 # build the system species concentration array -
                 {{system_species_array_block}}
 
+                # get the biophysical parameters for this system type -
+                biophysical_parameters_dictionary = get_biophysical_parameters_dictionary_for_system(system_type_flag)
+
                 # == DO NOT EDIT BELOW THIS LINE ======================================================= #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
                 problem_dictionary["system_concentration_array"] = system_concentration_array
+                problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
                 problem_dictionary["stoichiometric_matrix"] = SM
                 problem_dictionary["dilution_degradation_matrix"] = DM
 
@@ -351,21 +431,36 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
         # build snippets -
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
         template_dictionary["model_species_alias_block"] = _build_model_species_alias_snippet(model, ir_dictionary)
+        template_dictionary["system_species_alias_block"] = _build_system_species_alias_snippet(model, ir_dictionary)
+        template_dictionary["transcription_kinetic_limit_block"] = _build_transcription_kinetic_limit_snippet(model, ir_dictionary)
+        template_dictionary["translation_kinetic_limit_block"] = _build_translation_kinetic_limit_snippet(model, ir_dictionary)
 
         # setup the template -
         template = mt"""
         {{copyright_header_text}}
+
         function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float64,1}, 
             problem_dictionary::Dict{String,Any})::Array{Float64,1}
             
             # initialize -
             kinetic_limit_array = Array{Float64,1}()
-            
+            system_array = problem_dictionary["system_concentration_array"]
+            eX = problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"]       # default units: nt/s
+            LX = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"]    # default units: nt
+            k_cat_characteristic = (eX/LX)
+
+            # helper function -
+            r(kcat, L_char, L, polymerase, 𝛕, K, species) = kcat*(L_char/L)*polymerase*(species/(𝛕*K+(1+𝛕)*species))
+
             # alias the model species -
             {{model_species_alias_block}}
 
-            
-        
+            # alias the system species -
+            {{system_species_alias_block}}
+
+            # compute the transcription kinetic limit array -
+            {{transcription_kinetic_limit_block}}
+
             # return -
             return kinetic_limit_array
         end
@@ -375,12 +470,22 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
         
             # initialize -
             kinetic_limit_array = Array{Float64,1}()
+            system_array = problem_dictionary["system_concentration_array"]
+            eL = problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"]         # default units: aa/s
+            LL = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"]       # default units: aa
+            k_cat_characteristic = (eL/LL)
+
+            # helper function -
+            r(kcat, L_char, L, polymerase, 𝛕, K, species) = kcat*(L_char/L)*polymerase*(species/(𝛕*K+(1+𝛕)*species))
             
             # alias the model species -
             {{model_species_alias_block}}
 
+            # alias the system species -
+            {{system_species_alias_block}}
             
-            
+            # compute the translation kinetic limit array -
+            {{translation_kinetic_limit_block}}
         
             # return -
             return kinetic_limit_array
@@ -394,9 +499,6 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             
             # alias the model species -
             {{model_species_alias_block}}
-
-            
-            
         
             # return -
             return degradation_dilution_array
@@ -599,4 +701,4 @@ function generate_include_program_component(model::VLJuliaModelObject, ir_dictio
         rethrow(error)
     end
 end
-# ================================================================================================= #
+# ================================================================================================= #"kinetic_limit_array

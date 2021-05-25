@@ -30,9 +30,6 @@ function generate_problem_dictionary()::Dict{String,Any}
 
     try
 
-        # open a connection to the parameters db -
-        # ...
-
         # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
         SM = readdlm("./network/Network.dat")
         DM = readdlm("./network/Degradation.dat")
@@ -55,9 +52,13 @@ function generate_problem_dictionary()::Dict{String,Any}
 			1.0	;	#	M_gluconate_c	units: µM
 		]
 
+        # get the biophysical parameters for this system type -
+        biophysical_parameters_dictionary = get_biophysical_parameters_dictionary_for_system(system_type_flag)
+
         # == DO NOT EDIT BELOW THIS LINE ======================================================= #
         problem_dictionary["initial_condition_array"] = initial_condition_array
         problem_dictionary["system_concentration_array"] = system_concentration_array
+        problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
         problem_dictionary["stoichiometric_matrix"] = SM
         problem_dictionary["dilution_degradation_matrix"] = DM
 

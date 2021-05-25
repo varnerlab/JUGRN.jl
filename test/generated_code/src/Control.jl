@@ -45,7 +45,7 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 
     # alias the system species -
     system_array = problem_dictionary["system_concentration_array"]
-    	RNAP = system_array[1]
+    RNAP = system_array[1]
 	RIBOSOME = system_array[2]
 	σ70 = system_array[3]
 	M_gluconate_c = system_array[4]
