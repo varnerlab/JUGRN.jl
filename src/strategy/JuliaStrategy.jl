@@ -300,7 +300,11 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
             try
 
                 # open a connection to the parameters db -
+                # ...
 
+                # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
+                SM = readdlm("./network/Network.dat")
+                DM = readdlm("./network/Degradation.dat")
 
                 # build the species initial condition array -
                 {{initial_condition_array_block}}
@@ -308,10 +312,11 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
                 # build the system species concentration array -
                 {{system_species_array_block}}
 
-                
                 # == DO NOT EDIT BELOW THIS LINE ======================================================= #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
                 problem_dictionary["system_concentration_array"] = system_concentration_array
+                problem_dictionary["stoichiometric_matrix"] = SM
+                problem_dictionary["dilution_degradation_matrix"] = DM
 
                 # return -
                 return problem_dictionary
@@ -430,7 +435,7 @@ function generate_balances_program_component(model::VLJuliaModelObject,
 
             # system dimensions and structural matricies -
             number_of_states = problem_dictionary["number_of_states"]
-            AM = problem_dictionary["dilution_degradation_matrix"]
+            DM = problem_dictionary["dilution_degradation_matrix"]
             SM = problem_dictionary["stoichiometric_matrix"]
              
             # calculate the TX and TL kinetic limit array -
@@ -450,7 +455,7 @@ function generate_balances_program_component(model::VLJuliaModelObject,
             rd = calculate_dilution_degradation_array(t,x,problem_dictionary)
 
             # compute the model equations -
-            dxdt = SM*rV + AM*rd
+            dxdt = SM*rV + DM*rd
 
             # package -
             for index = 1:number_of_states

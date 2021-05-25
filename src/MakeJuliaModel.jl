@@ -62,6 +62,10 @@ function make_julia_model(problem::VLJuliaModelObject;
         stoichiometric_matrix_component = generate_stochiometric_matrix_component(ir_dictionary)
         push!(network_component_set, stoichiometric_matrix_component)
 
+        # build the degradation_matrix -
+        degradation_matrix_component = generate_dilution_degradation_matrix_component(ir_dictionary)
+        push!(network_component_set, degradation_matrix_component)
+
         # dump src components to disk -
         _output_path_to_src_distribution_files = joinpath(path_to_output_dir, "src")
         write_program_components_to_disk(_output_path_to_src_distribution_files, src_component_set)

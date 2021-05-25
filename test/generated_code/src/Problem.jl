@@ -31,7 +31,11 @@ function generate_problem_dictionary()::Dict{String,Any}
     try
 
         # open a connection to the parameters db -
+        # ...
 
+        # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
+        SM = readdlm("./network/Network.dat")
+        DM = readdlm("./network/Degradation.dat")
 
         # build the species initial condition array -
         initial_condition_array = [
@@ -51,10 +55,11 @@ function generate_problem_dictionary()::Dict{String,Any}
 			1.0	;	#	M_gluconate_c	units: µM
 		]
 
-        
         # == DO NOT EDIT BELOW THIS LINE ======================================================= #
         problem_dictionary["initial_condition_array"] = initial_condition_array
         problem_dictionary["system_concentration_array"] = system_concentration_array
+        problem_dictionary["stoichiometric_matrix"] = SM
+        problem_dictionary["dilution_degradation_matrix"] = DM
 
         # return -
         return problem_dictionary

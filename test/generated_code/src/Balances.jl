@@ -26,7 +26,7 @@ function Balances(dx,x, problem_dictionary,t)
 
     # system dimensions and structural matricies -
     number_of_states = problem_dictionary["number_of_states"]
-    AM = problem_dictionary["dilution_degradation_matrix"]
+    DM = problem_dictionary["dilution_degradation_matrix"]
     SM = problem_dictionary["stoichiometric_matrix"]
      
     # calculate the TX and TL kinetic limit array -
@@ -46,7 +46,7 @@ function Balances(dx,x, problem_dictionary,t)
     rd = calculate_dilution_degradation_array(t,x,problem_dictionary)
 
     # compute the model equations -
-    dxdt = SM*rV + AM*rd
+    dxdt = SM*rV + DM*rd
 
     # package -
     for index = 1:number_of_states
