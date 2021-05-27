@@ -48,23 +48,51 @@ function generate_problem_dictionary()::Dict{String,Any}
         system_concentration_array = [
 			0.07	;	#	RNAP	units: µM
 			0.07	;	#	RIBOSOME	units: µM
-			1.0	;	#	σ70	units: µM
+			1.0	;	#	P_σ70	units: µM
 			1.0	;	#	M_gluconate_c	units: µM
 		]
 
         # get the biophysical parameters for this system type -
         biophysical_parameters_dictionary = get_biophysical_parameters_dictionary_for_system(system_type_flag)
 
-        # == DO NOT EDIT BELOW THIS LINE ======================================================= #
+        # setup the model parameter array -
+        model_parameter_array = [
+			0.001	;	#	1	W_gene_venus
+			1.0		;	#	2	W_gene_venus_P_σ70
+			1.0		;	#	3	W_gene_venus_P_gntR
+
+			0.001	;	#	4	W_gene_gntR
+			1.0		;	#	5	W_gene_gntR_P_σ70
+
+			1.0		;	#	6	K_gene_venus
+			1.0		;	#	7	K_gene_gntR
+
+			1.0		;	#	8	𝛕_gene_venus
+			1.0		;	#	9	𝛕_gene_gntR
+
+			1.0		;	#	10	K_P_venus
+			1.0		;	#	11	K_P_gntR
+
+			1.0		;	#	12	𝛕_P_venus
+			1.0		;	#	13	𝛕_P_gntR
+		]
+
+
+        # setup the parameter symbol - index map -
+        
+
+        # == DO NOT EDIT BELOW THIS LINE ========================================================== #
         problem_dictionary["initial_condition_array"] = initial_condition_array
         problem_dictionary["system_concentration_array"] = system_concentration_array
         problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
+        problem_dictionary["model_parameter_array"] = model_parameter_array
+        problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
         problem_dictionary["stoichiometric_matrix"] = SM
         problem_dictionary["dilution_degradation_matrix"] = DM
 
         # return -
         return problem_dictionary
-        # ====================================================================================== #
+        # ========================================================================================= #
     catch error
         throw(error)
     end

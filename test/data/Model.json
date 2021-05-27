@@ -12,7 +12,7 @@
                 "units": "µM"
             },
             {
-                "symbol": "σ70",
+                "symbol": "P_σ70",
                 "concentration": 1.0,
                 "units": "µM"
             },
@@ -71,7 +71,7 @@
             "compartment": "system",
             "list_of_activators": [
                 {
-                    "symbol": "σ70",
+                    "symbol": "P_σ70",
                     "type": "positive_sigma_factor"
                 }
             ],
@@ -91,7 +91,7 @@
             "compartment": "system",
             "list_of_activators": [
                 {
-                    "symbol": "σ70",
+                    "symbol": "P_σ70",
                     "type": "positive_sigma_factor"
                 }
             ],

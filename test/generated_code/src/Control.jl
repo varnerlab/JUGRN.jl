@@ -23,10 +23,6 @@
 # ----------------------------------------------------------------------------------- #
 
 
-# binding function -
-f(x,K,n) = (x^n)/(K^n+x^n)
-u(A,R) = A/(1+A+R)
-
 # calculate the u-variables -
 function calculate_transcription_control_array(t::Float64, x::Array{Float64,1}, 
     problem_dictionary::Dict{String,Any})::Array{Float64,1}
@@ -34,6 +30,10 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
     # initialize -
     number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
     u_array = Array{Float64,1}(undef,number_of_transcription_processes)
+
+    # local helper functions -
+    f(x,K,n) = (x^n)/(K^n+x^n)
+    u(A,R) = A/(1+A+R)
 
     # alias the state vector -
     gene_gntR = x[1]
@@ -47,7 +47,7 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
     system_array = problem_dictionary["system_concentration_array"]
     RNAP = system_array[1]
 	RIBOSOME = system_array[2]
-	σ70 = system_array[3]
+	P_σ70 = system_array[3]
 	M_gluconate_c = system_array[4]
 
 
@@ -56,8 +56,8 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	# venus_promoter activator set
 	venus_promoter_activator_set = Array{Float64,1}()
 	push!(venus_promoter_activator_set, 1.0)
-	σ70_RNAP = RNAP*f(σ70,K,n)
-	push!(venus_promoter_activator_set, σ70_RNAP)
+	P_σ70_RNAP = RNAP*f(P_σ70,K,n)
+	push!(venus_promoter_activator_set, P_σ70_RNAP)
 	A = sum(W.*venus_promoter_activator_set)
 
 	# venus_promoter repressor set
@@ -70,8 +70,8 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	# gntR_promoter activator set
 	gntR_promoter_activator_set = Array{Float64,1}()
 	push!(gntR_promoter_activator_set, 1.0)
-	σ70_RNAP = RNAP*f(σ70,K,n)
-	push!(gntR_promoter_activator_set, σ70_RNAP)
+	P_σ70_RNAP = RNAP*f(P_σ70,K,n)
+	push!(gntR_promoter_activator_set, P_σ70_RNAP)
 	A = sum(W.*gntR_promoter_activator_set)
 	R = 0
 	push!(u_array, u(A,R))

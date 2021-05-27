@@ -351,6 +351,99 @@ function _build_translation_kinetic_limit_snippet(model::VLJuliaModelObject, ir_
     return flat_buffer
 end
 
+function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+
+     # initialize -
+    buffer = Array{String,1}()
+    list_of_translation_models = ir_dictionary["list_of_translation_models"]
+    list_of_transcription_models = ir_dictionary["list_of_transcription_models"]
+
+    # start -
+    +(buffer,"model_parameter_array = ["; suffix="\n")
+
+    # process the list of transcription models -
+    pcounter = 1
+    for (_, model_dictionary) in enumerate(list_of_transcription_models)
+        
+        # go through and formulate the W's -
+        input_string = model_dictionary["input"]
+        +(buffer,"0.001\t;\t#\t$(pcounter)\tW_$(input_string)\n";prefix="\t\t\t")
+        
+        # update -
+        pcounter = pcounter + 1
+
+        # process the list of activators -
+        list_of_activators = model_dictionary["list_of_activators"]
+        for (activator_index, activator_dictionary) in enumerate(list_of_activators)
+        
+            activator_symbol = activator_dictionary["symbol"]
+            +(buffer,"1.0\t\t;\t#\t$(pcounter)\tW_$(input_string)_$(activator_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1
+        end
+
+        # process the list of repressors -
+        list_of_repressors = model_dictionary["list_of_repressors"]
+        for (repressor_index, repressor_dictionary) in enumerate(list_of_repressors)
+            
+            repressor_symbol = repressor_dictionary["symbol"]
+            +(buffer,"1.0\t\t;\t#\t$(pcounter)\tW_$(input_string)_$(repressor_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1
+        end
+
+        # add extra row -
+        +(buffer,"\n")
+    end
+
+    for (_, model_dictionary) in enumerate(list_of_transcription_models)
+        
+        # what is the species -
+        input_string = model_dictionary["input"]
+
+        # K -
+        +(buffer, "1.0\t\t;\t#\t$(pcounter)\tK_$(input_string)\n"; prefix="\t\t\t")
+        pcounter = pcounter + 1
+    end
+
+    for (_, model_dictionary) in enumerate(list_of_transcription_models)
+        
+        # what is the species -
+        input_string = model_dictionary["input"]
+
+        # 𝛕 -
+        +(buffer, "1.0\t\t;\t#\t$(pcounter)\t𝛕_$(input_string)\n"; prefix="\t\t\t")
+        pcounter = pcounter + 1
+    end
+
+    # process the list of translation models -
+    for (_, model_dictionary) in enumerate(list_of_translation_models)
+        
+        # go through and formulate the W's -
+        output_string = model_dictionary["output"]
+
+        # K -
+        +(buffer, "1.0\t\t;\t#\t$(pcounter)\tK_$(output_string)\n"; prefix="\t\t\t")
+        pcounter = pcounter + 1
+    end
+
+    for (_, model_dictionary) in enumerate(list_of_translation_models)
+        
+        # go through and formulate the W's -
+        output_string = model_dictionary["output"]
+
+        # K -
+        +(buffer, "1.0\t\t;\t#\t$(pcounter)\t𝛕_$(output_string)\n"; prefix="\t\t\t")
+        pcounter = pcounter + 1
+    end
+
+    # end -
+    +(buffer, "]"; suffix="\n", prefix="\t\t")
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
 # == MAIN METHODS BELOW HERE ======================================================================= #
 function generate_data_dictionary_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
 
@@ -366,6 +459,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
         template_dictionary["initial_condition_array_block"] = _build_ic_array_snippet(model, ir_dictionary)
         template_dictionary["system_species_array_block"] = _build_system_species_concentration_snippet(model, ir_dictionary)
         template_dictionary["system_type_flag"] = _build_system_type_snippet(model, ir_dictionary)
+        template_dictionary["model_parameter_array_block"] = _build_model_parameter_array_snippet(model, ir_dictionary)
 
         # write the template -
         template = mt"""
@@ -391,16 +485,24 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
                 # get the biophysical parameters for this system type -
                 biophysical_parameters_dictionary = get_biophysical_parameters_dictionary_for_system(system_type_flag)
 
-                # == DO NOT EDIT BELOW THIS LINE ======================================================= #
+                # setup the model parameter array -
+                {{model_parameter_array_block}}
+
+                # setup the parameter symbol - index map -
+                {{model_parameter_symbol_index_map_block}}
+
+                # == DO NOT EDIT BELOW THIS LINE ========================================================== #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
                 problem_dictionary["system_concentration_array"] = system_concentration_array
                 problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
+                problem_dictionary["model_parameter_array"] = model_parameter_array
+                problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
                 problem_dictionary["stoichiometric_matrix"] = SM
                 problem_dictionary["dilution_degradation_matrix"] = DM
 
                 # return -
                 return problem_dictionary
-                # ====================================================================================== #
+                # ========================================================================================= #
             catch error
                 throw(error)
             end
@@ -598,10 +700,6 @@ function generate_control_program_component(model::VLJuliaModelObject,
         template=mt"""
         {{copyright_header_text}}
         
-        # binding function -
-        f(x,K,n) = (x^n)/(K^n+x^n)
-        u(A,R) = A/(1+A+R)
-        
         # calculate the u-variables -
         function calculate_transcription_control_array(t::Float64, x::Array{Float64,1}, 
             problem_dictionary::Dict{String,Any})::Array{Float64,1}
@@ -609,6 +707,10 @@ function generate_control_program_component(model::VLJuliaModelObject,
             # initialize -
             number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
             u_array = Array{Float64,1}(undef,number_of_transcription_processes)
+
+            # local helper functions -
+            f(x,K,n) = (x^n)/(K^n+x^n)
+            u(A,R) = A/(1+A+R)
 
             # alias the state vector -
             {{model_species_alias_block}}
