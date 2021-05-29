@@ -23,18 +23,21 @@
 # ----------------------------------------------------------------------------------- #
 
 
-# setup paths -
-const _PATH_TO_ROOT = pwd()
-const _PATH_TO_SRC = joinpath(_PATH_TO_ROOT, "src")
-const _PATH_TO_NETWORK = joinpath(_PATH_TO_SRC, "network")
+# stuff we need -
+import Pkg
 
-# use packages -
-using DifferentialEquations
-using VLModelParametersDB
-using DelimitedFiles
+# initialization function -
+function __init__()
+    
+    # setup paths -
+    _PATH_TO_ROOT = pwd()
 
-# include my codes -
-include("./src/Problem.jl")
-include("./src/Balances.jl")
-include("./src/Kinetics.jl")
-include("./src/Control.jl")
+    # get packages -
+    Pkg.activate(_PATH_TO_ROOT)
+    Pkg.add(name="DifferentialEquations")
+    Pkg.add(name="VLModelParametersDB")
+    Pkg.add(name="DelimitedFiles")
+end
+
+# init me -
+__init__()

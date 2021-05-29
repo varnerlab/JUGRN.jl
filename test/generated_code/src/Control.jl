@@ -29,6 +29,8 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 
     # initialize -
     number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
+    model_parameter_array = problem_dictionary["model_parameter_array"]
+    model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
     u_array = Array{Float64,1}(undef,number_of_transcription_processes)
 
     # local helper functions -
@@ -49,6 +51,32 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	RIBOSOME = system_array[2]
 	P_σ70 = system_array[3]
 	M_gluconate_c = system_array[4]
+
+
+    # alias the system parameters -
+    W_gene_venus = model_parameter_array[model_parameter_index_map[:W_gene_venus]]
+	W_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_σ70]]
+	W_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_gntR]]
+	K_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_σ70]]
+	n_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_σ70]]
+	K_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_gntR]]
+	n_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_gntR]]
+	W_gene_gntR = model_parameter_array[model_parameter_index_map[:W_gene_gntR]]
+	W_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_gntR_P_σ70]]
+	K_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_gntR_P_σ70]]
+	n_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_gntR_P_σ70]]
+	K_gene_venus = model_parameter_array[model_parameter_index_map[:K_gene_venus]]
+	𝛕_gene_venus = model_parameter_array[model_parameter_index_map[:𝛕_gene_venus]]
+	K_gene_gntR = model_parameter_array[model_parameter_index_map[:K_gene_gntR]]
+	𝛕_gene_gntR = model_parameter_array[model_parameter_index_map[:𝛕_gene_gntR]]
+	K_P_venus = model_parameter_array[model_parameter_index_map[:K_P_venus]]
+	𝛕_P_venus = model_parameter_array[model_parameter_index_map[:𝛕_P_venus]]
+	K_P_gntR = model_parameter_array[model_parameter_index_map[:K_P_gntR]]
+	𝛕_P_gntR = model_parameter_array[model_parameter_index_map[:𝛕_P_gntR]]
+	𝛳_mRNA_gntR = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_gntR]]
+	𝛳_mRNA_venus = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_venus]]
+	𝛳_P_gntR = model_parameter_array[model_parameter_index_map[:𝛳_P_gntR]]
+	𝛳_P_venus = model_parameter_array[model_parameter_index_map[:𝛳_P_venus]]
 
 
     # == CONTROL LOGIC BELOW ================================================================= #

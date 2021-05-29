@@ -31,8 +31,8 @@ function generate_problem_dictionary()::Dict{String,Any}
     try
 
         # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
-        SM = readdlm("./src/network/Network.dat")
-        DM = readdlm("./src/network/Degradation.dat")
+        SM = readdlm(joinpath(_PATH_TO_NETWORK,"Network.dat"))
+        DM = readdlm(joinpath(_PATH_TO_NETWORK,"Degradation.dat"))
 
         # build the species initial condition array -
         initial_condition_array = [
@@ -97,7 +97,7 @@ function generate_problem_dictionary()::Dict{String,Any}
 		]
 
 
-        # setup the parameter symbol - index map -
+        # setup the parameter symbol index map -
         model_parameter_symbol_index_map = Dict{Symbol,Int}()
 		model_parameter_symbol_index_map[:W_gene_venus] = 1
 		model_parameter_symbol_index_map[:W_gene_venus_P_σ70] = 2
@@ -124,14 +124,46 @@ function generate_problem_dictionary()::Dict{String,Any}
 		model_parameter_symbol_index_map[:𝛳_P_venus] = 23
 
 
+        # setup the inverse parameter symbol index map -
+        inverse_model_parameter_symbol_index_map = Dict{Int, Symbol}()
+		inverse_model_parameter_symbol_index_map[1] = :W_gene_venus
+		inverse_model_parameter_symbol_index_map[2] = :W_gene_venus_P_σ70
+		inverse_model_parameter_symbol_index_map[3] = :W_gene_venus_P_gntR
+		inverse_model_parameter_symbol_index_map[4] = :K_gene_venus_P_σ70
+		inverse_model_parameter_symbol_index_map[5] = :n_gene_venus_P_σ70
+		inverse_model_parameter_symbol_index_map[6] = :K_gene_venus_P_gntR
+		inverse_model_parameter_symbol_index_map[7] = :n_gene_venus_P_gntR
+		inverse_model_parameter_symbol_index_map[8] = :W_gene_gntR
+		inverse_model_parameter_symbol_index_map[9] = :W_gene_gntR_P_σ70
+		inverse_model_parameter_symbol_index_map[10] = :K_gene_gntR_P_σ70
+		inverse_model_parameter_symbol_index_map[11] = :n_gene_gntR_P_σ70
+		inverse_model_parameter_symbol_index_map[12] = :K_gene_venus
+		inverse_model_parameter_symbol_index_map[13] = :𝛕_gene_venus
+		inverse_model_parameter_symbol_index_map[14] = :K_gene_gntR
+		inverse_model_parameter_symbol_index_map[15] = :𝛕_gene_gntR
+		inverse_model_parameter_symbol_index_map[16] = :K_P_venus
+		inverse_model_parameter_symbol_index_map[17] = :𝛕_P_venus
+		inverse_model_parameter_symbol_index_map[18] = :K_P_gntR
+		inverse_model_parameter_symbol_index_map[19] = :𝛕_P_gntR
+		inverse_model_parameter_symbol_index_map[20] = :𝛳_mRNA_gntR
+		inverse_model_parameter_symbol_index_map[21] = :𝛳_mRNA_venus
+		inverse_model_parameter_symbol_index_map[22] = :𝛳_P_gntR
+		inverse_model_parameter_symbol_index_map[23] = :𝛳_P_venus
+
+
+        # growth rate (default: h^-1)
+        μ = 0.0 # default units: h^-1
+
         # == DO NOT EDIT BELOW THIS LINE ========================================================== #
         problem_dictionary["initial_condition_array"] = initial_condition_array
         problem_dictionary["system_concentration_array"] = system_concentration_array
         problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
         problem_dictionary["model_parameter_array"] = model_parameter_array
         problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
+        problem_dictionary["inverse_model_parameter_symbol_index_map"] = inverse_model_parameter_symbol_index_map
         problem_dictionary["stoichiometric_matrix"] = SM
         problem_dictionary["dilution_degradation_matrix"] = DM
+        problem_dictionary["specific_growth_rate"] = μ
 
         # return -
         return problem_dictionary

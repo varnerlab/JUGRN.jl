@@ -450,8 +450,6 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
             +(buffer,"\n")
         end
 
-    
-
         # K -
         +(buffer,"# transcription kinetic limit parameters: $(input_string)\n";prefix="\t\t\t")
         +(buffer, "1.0\t\t;\t#\t$(pcounter)\tK_$(input_string)\n"; prefix="\t\t\t")
@@ -535,6 +533,76 @@ function _build_model_parameter_symbol_index_map(parameter_symbol_array::Array{S
     return flat_buffer
 end
 
+function _build_inverse_model_parameter_symbol_index_map(parameter_symbol_array::Array{String,1})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+
+    # build the map -
+    +(buffer,"inverse_model_parameter_symbol_index_map = Dict{Int, Symbol}()";suffix="\n")
+    for (index, parameter_symbol) in enumerate(parameter_symbol_array)
+        +(buffer,"inverse_model_parameter_symbol_index_map[$(index)] = :$(parameter_symbol)";prefix="\t\t",suffix="\n")
+    end
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
+function _build_parameter_alias_snippet(parameter_symbol_array::Array{String,1})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+
+    # build the alias -
+    for (index, parameter_symbol) in enumerate(parameter_symbol_array)
+        if (index == 1)
+            +(buffer,"$(parameter_symbol) = model_parameter_array[model_parameter_index_map[:$(parameter_symbol)]]"; suffix="\n")
+        else
+            +(buffer,"$(parameter_symbol) = model_parameter_array[model_parameter_index_map[:$(parameter_symbol)]]"; prefix="\t", suffix="\n")
+        end
+    end
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
+function _build_degradation_dilution_snippet(model::VLJuliaModelObject, 
+    ir_dictionary::Dict{String,Any})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+    model_species_table = ir_dictionary["model_species_table"]
+
+    # iterate -
+    (number_of_species, _) = size(model_species_table)
+    for species_index = 1:number_of_species
+        
+        # get type and species -
+        species_type = model_species_table[species_index, :type]
+        species_symbol = model_species_table[species_index, :symbol]
+
+        # if not DNA
+        if (species_type != :DNA)
+
+            prefix_string=""
+            if (species_index>1)
+                prefix_string="\t"
+            end
+            
+            +(buffer, "push!(degradation_dilution_array, (μ + 𝛳_$(species_symbol))*$(species_symbol))"; prefix=prefix_string, suffix="\n")
+        end
+    end
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
 # == MAIN METHODS BELOW HERE ======================================================================= #
 function generate_data_dictionary_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
 
@@ -557,6 +625,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
 
         # symbol index map -
         template_dictionary["model_parameter_symbol_index_map_block"] = _build_model_parameter_symbol_index_map(results_tuple.parameter_symbol_array)
+        template_dictionary["inverse_model_parameter_symbol_index_map_block"] = _build_inverse_model_parameter_symbol_index_map(results_tuple.parameter_symbol_array)
 
         # write the template -
         template = mt"""
@@ -570,8 +639,8 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
             try
 
                 # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
-                SM = readdlm("./network/Network.dat")
-                DM = readdlm("./network/Degradation.dat")
+                SM = readdlm(joinpath(_PATH_TO_NETWORK,"Network.dat"))
+                DM = readdlm(joinpath(_PATH_TO_NETWORK,"Degradation.dat"))
 
                 # build the species initial condition array -
                 {{initial_condition_array_block}}
@@ -585,8 +654,14 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
                 # setup the model parameter array -
                 {{model_parameter_array_block}}
 
-                # setup the parameter symbol - index map -
+                # setup the parameter symbol index map -
                 {{model_parameter_symbol_index_map_block}}
+
+                # setup the inverse parameter symbol index map -
+                {{inverse_model_parameter_symbol_index_map_block}}
+
+                # growth rate (default: h^-1)
+                μ = 0.0 # default units: h^-1
 
                 # == DO NOT EDIT BELOW THIS LINE ========================================================== #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
@@ -594,8 +669,10 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
                 problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
                 problem_dictionary["model_parameter_array"] = model_parameter_array
                 problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
+                problem_dictionary["inverse_model_parameter_symbol_index_map"] = inverse_model_parameter_symbol_index_map
                 problem_dictionary["stoichiometric_matrix"] = SM
                 problem_dictionary["dilution_degradation_matrix"] = DM
+                problem_dictionary["specific_growth_rate"] = μ
 
                 # return -
                 return problem_dictionary
@@ -627,12 +704,18 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
 
     try
 
+        # we get the parameter array back in addition 2 the flat buffer for this method -
+        results_tuple = _build_model_parameter_array_snippet(model, ir_dictionary)
+        parameter_symbol_array = results_tuple.parameter_symbol_array
+
         # build snippets -
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
         template_dictionary["model_species_alias_block"] = _build_model_species_alias_snippet(model, ir_dictionary)
         template_dictionary["system_species_alias_block"] = _build_system_species_alias_snippet(model, ir_dictionary)
         template_dictionary["transcription_kinetic_limit_block"] = _build_transcription_kinetic_limit_snippet(model, ir_dictionary)
         template_dictionary["translation_kinetic_limit_block"] = _build_translation_kinetic_limit_snippet(model, ir_dictionary)
+        template_dictionary["system_parameter_alias_block"] = _build_parameter_alias_snippet(parameter_symbol_array)
+        template_dictionary["degradation_dilution_terms_block"] = _build_degradation_dilution_snippet(model, ir_dictionary)
 
         # setup the template -
         template = mt"""
@@ -656,6 +739,9 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
 
             # alias the system species -
             {{system_species_alias_block}}
+
+            # alias the system parameters -
+            {{system_parameter_alias_block}}
 
             # compute the transcription kinetic limit array -
             {{transcription_kinetic_limit_block}}
@@ -682,6 +768,9 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
 
             # alias the system species -
             {{system_species_alias_block}}
+
+            # alias the system parameters -
+            {{system_parameter_alias_block}}
             
             # compute the translation kinetic limit array -
             {{translation_kinetic_limit_block}}
@@ -694,10 +783,17 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             problem_dictionary::Dict{String,Any})::Array{Float64,1}
             
             # initialize -
+            μ = problem_dictionary["specific_growth_rate"]
             degradation_dilution_array = Array{Float64,1}()
             
             # alias the model species -
             {{model_species_alias_block}}
+
+            # alias the system parameters -
+            {{system_parameter_alias_block}}
+
+            # formulate the degradation and dilution terms -
+            {{degradation_dilution_terms_block}}
         
             # return -
             return degradation_dilution_array
@@ -787,11 +883,16 @@ function generate_control_program_component(model::VLJuliaModelObject,
 
     try
 
+        # we get the parameter array back in addition 2 the flat buffer for this method -
+        results_tuple = _build_model_parameter_array_snippet(model, ir_dictionary)
+        parameter_symbol_array = results_tuple.parameter_symbol_array
+
         # build snippets -
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
         template_dictionary["u_variable_snippet"] = _build_u_variable_snippet(model,ir_dictionary)
         template_dictionary["model_species_alias_block"] = _build_model_species_alias_snippet(model, ir_dictionary)
         template_dictionary["system_species_alias_block"] = _build_system_species_alias_snippet(model, ir_dictionary)
+        template_dictionary["system_parameter_alias_block"] = _build_parameter_alias_snippet(parameter_symbol_array)
 
         # build template -
         template=mt"""
@@ -803,6 +904,8 @@ function generate_control_program_component(model::VLJuliaModelObject,
 
             # initialize -
             number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
+            model_parameter_array = problem_dictionary["model_parameter_array"]
+            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
             u_array = Array{Float64,1}(undef,number_of_transcription_processes)
 
             # local helper functions -
@@ -815,6 +918,9 @@ function generate_control_program_component(model::VLJuliaModelObject,
             # alias the system species -
             system_array = problem_dictionary["system_concentration_array"]
             {{system_species_alias_block}}
+
+            # alias the system parameters -
+            {{system_parameter_alias_block}}
 
             # == CONTROL LOGIC BELOW ================================================================= #
             {{u_variable_snippet}}
@@ -850,6 +956,54 @@ function generate_control_program_component(model::VLJuliaModelObject,
     end
 end
 
+function generate_init_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
+
+    # initialize -
+    filename = "Initialize.jl"
+    template_dictionary = Dict{String,Any}()
+
+    try
+
+        # build snippets -
+        template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
+
+        # build template -
+        template=mt"""
+        {{copyright_header_text}}
+
+        # stuff we need -
+        import Pkg
+
+        # initialization function -
+        function __init__()
+            
+            # setup paths -
+            _PATH_TO_ROOT = pwd()
+
+            # get packages -
+            Pkg.activate(_PATH_TO_ROOT)
+            Pkg.add(name="DifferentialEquations")
+            Pkg.add(name="VLModelParametersDB")
+            Pkg.add(name="DelimitedFiles")
+        end
+
+        # init me -
+        __init__()
+        """
+
+        # render step -
+        flat_buffer = render(template, template_dictionary)
+        
+        # package up into a NamedTuple -
+        program_component = (buffer=flat_buffer, filename=filename, component_type=:buffer)
+
+        # return -
+        return program_component
+    catch error
+        rethrow(error)
+    end
+end
+
 function generate_include_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
 
     # initialize -
@@ -868,14 +1022,8 @@ function generate_include_program_component(model::VLJuliaModelObject, ir_dictio
         # setup paths -
         const _PATH_TO_ROOT = pwd()
         const _PATH_TO_SRC = joinpath(_PATH_TO_ROOT, "src")
+        const _PATH_TO_NETWORK = joinpath(_PATH_TO_SRC, "network")
 
-        # get packages -
-        import Pkg
-        Pkg.activate(_PATH_TO_ROOT)
-        Pkg.add(name="DifferentialEquations")
-        Pkg.add(name="VLModelParametersDB")
-        Pkg.add(name="DelimitedFiles")
-        
         # use packages -
         using DifferentialEquations
         using VLModelParametersDB
