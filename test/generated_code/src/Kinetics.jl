@@ -70,7 +70,7 @@ function calculate_translation_kinetic_limit_array(t::Float64, x::Array{Float64,
     k_cat_characteristic = (eL/LL)
 
     # helper function -
-    r(kcat, L_char, L, polymerase, 𝛕, K, species) = kcat*(L_char/L)*polymerase*(species/(𝛕*K+(1+𝛕)*species))
+    r(kcat, L_char, L, ribosome, 𝛕, K, species) = kcat*(L_char/L)*ribosome*(species/(𝛕*K+(1+𝛕)*species))
     
     # alias the model species -
     gene_gntR = x[1]

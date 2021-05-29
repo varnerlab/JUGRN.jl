@@ -351,15 +351,17 @@ function _build_translation_kinetic_limit_snippet(model::VLJuliaModelObject, ir_
     return flat_buffer
 end
 
-function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
+function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
 
      # initialize -
     buffer = Array{String,1}()
     list_of_translation_models = ir_dictionary["list_of_translation_models"]
     list_of_transcription_models = ir_dictionary["list_of_transcription_models"]
+    model_species_table = ir_dictionary["model_species_table"]
+    parameter_symbol_array = Array{String,1}()
 
     # start -
-    +(buffer,"model_parameter_array = ["; suffix="\n")
+    +(buffer,"model_parameter_array = ["; suffix="\n\n")
 
     # process the list of transcription models -
     pcounter = 1
@@ -367,6 +369,12 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
         
         # go through and formulate the W's -
         input_string = model_dictionary["input"]
+
+        # grab the symbol -
+        push!(parameter_symbol_array, "W_$(input_string)")
+
+        # put a comment line -
+        +(buffer,"# control parameters: $(input_string)\n";prefix="\t\t\t")
         +(buffer,"0.001\t;\t#\t$(pcounter)\tW_$(input_string)\n";prefix="\t\t\t")
         
         # update -
@@ -377,6 +385,10 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
         for (activator_index, activator_dictionary) in enumerate(list_of_activators)
         
             activator_symbol = activator_dictionary["symbol"]
+
+            # grab the parameter symbol -
+            push!(parameter_symbol_array, "W_$(input_string)_$(activator_symbol)")
+
             +(buffer,"1.0\t\t;\t#\t$(pcounter)\tW_$(input_string)_$(activator_symbol)\n"; prefix="\t\t\t")
             pcounter = pcounter + 1
         end
@@ -386,57 +398,136 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
         for (repressor_index, repressor_dictionary) in enumerate(list_of_repressors)
             
             repressor_symbol = repressor_dictionary["symbol"]
+
+            # grab the parameter symbol -
+            push!(parameter_symbol_array, "W_$(input_string)_$(repressor_symbol)")
+
             +(buffer,"1.0\t\t;\t#\t$(pcounter)\tW_$(input_string)_$(repressor_symbol)\n"; prefix="\t\t\t")
             pcounter = pcounter + 1
+        end
+
+        # binding constant, and binding order for activators -
+        for (activator_index, activator_dictionary) in enumerate(list_of_activators)
+        
+            activator_symbol = activator_dictionary["symbol"]
+            
+            # grab the parameter symbol -
+            push!(parameter_symbol_array, "K_$(input_string)_$(activator_symbol)")
+            push!(parameter_symbol_array, "n_$(input_string)_$(activator_symbol)")
+            
+            +(buffer,"1.0\t\t;\t#\t$(pcounter)\tK_$(input_string)_$(activator_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1
+
+            +(buffer,"1.0\t\t;\t#\t$(pcounter)\tn_$(input_string)_$(activator_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1            
+        end
+
+        # binding constant, and binding order for repressors -
+        for (repressor_index, repressor_dictionary) in enumerate(list_of_repressors)
+        
+            repressor_symbol = repressor_dictionary["symbol"]
+            +(buffer,"1.0\t\t;\t#\t$(pcounter)\tK_$(input_string)_$(repressor_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1
+
+            +(buffer,"1.0\t\t;\t#\t$(pcounter)\tn_$(input_string)_$(repressor_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1   
+
+            # grab the parameter symbol -
+            push!(parameter_symbol_array, "K_$(input_string)_$(repressor_symbol)")
+            push!(parameter_symbol_array, "n_$(input_string)_$(repressor_symbol)")
         end
 
         # add extra row -
         +(buffer,"\n")
     end
 
-    for (_, model_dictionary) in enumerate(list_of_transcription_models)
+    for (tx_index, model_dictionary) in enumerate(list_of_transcription_models)
         
         # what is the species -
         input_string = model_dictionary["input"]
 
+        if (tx_index>1)
+            +(buffer,"\n")
+        end
+
+    
+
         # K -
+        +(buffer,"# transcription kinetic limit parameters: $(input_string)\n";prefix="\t\t\t")
         +(buffer, "1.0\t\t;\t#\t$(pcounter)\tK_$(input_string)\n"; prefix="\t\t\t")
         pcounter = pcounter + 1
-    end
 
-    for (_, model_dictionary) in enumerate(list_of_transcription_models)
-        
-        # what is the species -
-        input_string = model_dictionary["input"]
-
-        # 𝛕 -
         +(buffer, "1.0\t\t;\t#\t$(pcounter)\t𝛕_$(input_string)\n"; prefix="\t\t\t")
         pcounter = pcounter + 1
+
+        # grab the parameter symbol -
+        push!(parameter_symbol_array, "K_$(input_string)")
+        push!(parameter_symbol_array, "𝛕_$(input_string)")
     end
+
+    +(buffer,"\n")
 
     # process the list of translation models -
-    for (_, model_dictionary) in enumerate(list_of_translation_models)
+    for (tl_index, model_dictionary) in enumerate(list_of_translation_models)
         
         # go through and formulate the W's -
         output_string = model_dictionary["output"]
 
+        if (tl_index>1)
+            +(buffer,"\n")
+        end
+
         # K -
+        +(buffer,"# translation kinetic limit parameters: $(output_string)\n";prefix="\t\t\t")
         +(buffer, "1.0\t\t;\t#\t$(pcounter)\tK_$(output_string)\n"; prefix="\t\t\t")
         pcounter = pcounter + 1
-    end
 
-    for (_, model_dictionary) in enumerate(list_of_translation_models)
-        
-        # go through and formulate the W's -
-        output_string = model_dictionary["output"]
-
-        # K -
         +(buffer, "1.0\t\t;\t#\t$(pcounter)\t𝛕_$(output_string)\n"; prefix="\t\t\t")
         pcounter = pcounter + 1
+
+        # grab the parameter symbol -
+        push!(parameter_symbol_array, "K_$(output_string)")
+        push!(parameter_symbol_array, "𝛕_$(output_string)")
+    end
+
+    +(buffer,"\n")
+    +(buffer,"# species degradation constants - \n"; prefix="\t\t\t")
+
+    # ok, lastly we need degrdation constants for system species -
+    (number_of_species, _) = size(model_species_table)
+    for species_index = 1:number_of_species
+        species_type = model_species_table[species_index, :type]
+        species_symbol = model_species_table[species_index, :symbol]
+        if (species_type != :DNA)
+            +(buffer, "1.0\t\t;\t#\t$(pcounter)\t𝛳_$(species_symbol)\n"; prefix="\t\t\t")
+            pcounter = pcounter + 1
+
+            # grab the parameter symbol -
+            push!(parameter_symbol_array, "𝛳_$(species_symbol)")
+        end
     end
 
     # end -
     +(buffer, "]"; suffix="\n", prefix="\t\t")
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    
+    results_tuple = (flat_buffer=flat_buffer, parameter_symbol_array=parameter_symbol_array)
+    return results_tuple
+end
+
+function _build_model_parameter_symbol_index_map(parameter_symbol_array::Array{String,1})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+
+    # build the map -
+    +(buffer,"model_parameter_symbol_index_map = Dict{Symbol,Int}()";suffix="\n")
+    for (index, parameter_symbol) in enumerate(parameter_symbol_array)
+        +(buffer,"model_parameter_symbol_index_map[:$(parameter_symbol)] = $(index)";prefix="\t\t",suffix="\n")
+    end
 
     # flatten and return -
     flat_buffer = ""
@@ -459,7 +550,13 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
         template_dictionary["initial_condition_array_block"] = _build_ic_array_snippet(model, ir_dictionary)
         template_dictionary["system_species_array_block"] = _build_system_species_concentration_snippet(model, ir_dictionary)
         template_dictionary["system_type_flag"] = _build_system_type_snippet(model, ir_dictionary)
-        template_dictionary["model_parameter_array_block"] = _build_model_parameter_array_snippet(model, ir_dictionary)
+        
+        # we get the parameter array back in addition 2 the flat buffer for this method -
+        results_tuple = _build_model_parameter_array_snippet(model, ir_dictionary)
+        template_dictionary["model_parameter_array_block"] = results_tuple.flat_buffer
+
+        # symbol index map -
+        template_dictionary["model_parameter_symbol_index_map_block"] = _build_model_parameter_symbol_index_map(results_tuple.parameter_symbol_array)
 
         # write the template -
         template = mt"""
@@ -578,7 +675,7 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             k_cat_characteristic = (eL/LL)
 
             # helper function -
-            r(kcat, L_char, L, polymerase, 𝛕, K, species) = kcat*(L_char/L)*polymerase*(species/(𝛕*K+(1+𝛕)*species))
+            r(kcat, L_char, L, ribosome, 𝛕, K, species) = kcat*(L_char/L)*ribosome*(species/(𝛕*K+(1+𝛕)*species))
             
             # alias the model species -
             {{model_species_alias_block}}

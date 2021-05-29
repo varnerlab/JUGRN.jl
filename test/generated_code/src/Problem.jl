@@ -31,8 +31,8 @@ function generate_problem_dictionary()::Dict{String,Any}
     try
 
         # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
-        SM = readdlm("./network/Network.dat")
-        DM = readdlm("./network/Degradation.dat")
+        SM = readdlm("./src/network/Network.dat")
+        DM = readdlm("./src/network/Degradation.dat")
 
         # build the species initial condition array -
         initial_condition_array = [
@@ -57,29 +57,72 @@ function generate_problem_dictionary()::Dict{String,Any}
 
         # setup the model parameter array -
         model_parameter_array = [
+
+			# control parameters: gene_venus
 			0.001	;	#	1	W_gene_venus
 			1.0		;	#	2	W_gene_venus_P_σ70
 			1.0		;	#	3	W_gene_venus_P_gntR
+			1.0		;	#	4	K_gene_venus_P_σ70
+			1.0		;	#	5	n_gene_venus_P_σ70
+			1.0		;	#	6	K_gene_venus_P_gntR
+			1.0		;	#	7	n_gene_venus_P_gntR
 
-			0.001	;	#	4	W_gene_gntR
-			1.0		;	#	5	W_gene_gntR_P_σ70
+			# control parameters: gene_gntR
+			0.001	;	#	8	W_gene_gntR
+			1.0		;	#	9	W_gene_gntR_P_σ70
+			1.0		;	#	10	K_gene_gntR_P_σ70
+			1.0		;	#	11	n_gene_gntR_P_σ70
 
-			1.0		;	#	6	K_gene_venus
-			1.0		;	#	7	K_gene_gntR
+			# transcription kinetic limit parameters: gene_venus
+			1.0		;	#	12	K_gene_venus
+			1.0		;	#	13	𝛕_gene_venus
 
-			1.0		;	#	8	𝛕_gene_venus
-			1.0		;	#	9	𝛕_gene_gntR
+			# transcription kinetic limit parameters: gene_gntR
+			1.0		;	#	14	K_gene_gntR
+			1.0		;	#	15	𝛕_gene_gntR
 
-			1.0		;	#	10	K_P_venus
-			1.0		;	#	11	K_P_gntR
+			# translation kinetic limit parameters: P_venus
+			1.0		;	#	16	K_P_venus
+			1.0		;	#	17	𝛕_P_venus
 
-			1.0		;	#	12	𝛕_P_venus
-			1.0		;	#	13	𝛕_P_gntR
+			# translation kinetic limit parameters: P_gntR
+			1.0		;	#	18	K_P_gntR
+			1.0		;	#	19	𝛕_P_gntR
+
+			# species degradation constants - 
+			1.0		;	#	20	𝛳_mRNA_gntR
+			1.0		;	#	21	𝛳_mRNA_venus
+			1.0		;	#	22	𝛳_P_gntR
+			1.0		;	#	23	𝛳_P_venus
 		]
 
 
         # setup the parameter symbol - index map -
-        
+        model_parameter_symbol_index_map = Dict{Symbol,Int}()
+		model_parameter_symbol_index_map[:W_gene_venus] = 1
+		model_parameter_symbol_index_map[:W_gene_venus_P_σ70] = 2
+		model_parameter_symbol_index_map[:W_gene_venus_P_gntR] = 3
+		model_parameter_symbol_index_map[:K_gene_venus_P_σ70] = 4
+		model_parameter_symbol_index_map[:n_gene_venus_P_σ70] = 5
+		model_parameter_symbol_index_map[:K_gene_venus_P_gntR] = 6
+		model_parameter_symbol_index_map[:n_gene_venus_P_gntR] = 7
+		model_parameter_symbol_index_map[:W_gene_gntR] = 8
+		model_parameter_symbol_index_map[:W_gene_gntR_P_σ70] = 9
+		model_parameter_symbol_index_map[:K_gene_gntR_P_σ70] = 10
+		model_parameter_symbol_index_map[:n_gene_gntR_P_σ70] = 11
+		model_parameter_symbol_index_map[:K_gene_venus] = 12
+		model_parameter_symbol_index_map[:𝛕_gene_venus] = 13
+		model_parameter_symbol_index_map[:K_gene_gntR] = 14
+		model_parameter_symbol_index_map[:𝛕_gene_gntR] = 15
+		model_parameter_symbol_index_map[:K_P_venus] = 16
+		model_parameter_symbol_index_map[:𝛕_P_venus] = 17
+		model_parameter_symbol_index_map[:K_P_gntR] = 18
+		model_parameter_symbol_index_map[:𝛕_P_gntR] = 19
+		model_parameter_symbol_index_map[:𝛳_mRNA_gntR] = 20
+		model_parameter_symbol_index_map[:𝛳_mRNA_venus] = 21
+		model_parameter_symbol_index_map[:𝛳_P_gntR] = 22
+		model_parameter_symbol_index_map[:𝛳_P_venus] = 23
+
 
         # == DO NOT EDIT BELOW THIS LINE ========================================================== #
         problem_dictionary["initial_condition_array"] = initial_condition_array
