@@ -20,14 +20,9 @@ function +(buffer::Array{String,1}, content::String;
     push!(buffer,new_line)
 end
 
-function +(buffer::Array{String,1}, content_array::Array{String,1}; padding::Union{String,Nothing}=nothing)
+function +(buffer::Array{String,1}, content_array::Array{String,1})
     for line in content_array
-        
-        if (padding === nothing)
-            push!(buffer, line)
-        else
-            push!(buffer,"$(padding)$(line)")
-        end
+        push!(buffer, line)
     end
 end
 

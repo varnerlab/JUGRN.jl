@@ -80,29 +80,42 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 
 
     # == CONTROL LOGIC BELOW ================================================================= #
-    # venus_promoter: gene_venus -[RNAP]- mRNA_venus
-	# venus_promoter activator set
-	venus_promoter_activator_set = Array{Float64,1}()
-	push!(venus_promoter_activator_set, 1.0)
-	P_σ70_RNAP = RNAP*f(P_σ70,K,n)
-	push!(venus_promoter_activator_set, P_σ70_RNAP)
-	A = sum(W.*venus_promoter_activator_set)
+    	# gene_venus activation - 
+W = [
+			W_gene_venus	;
+			W_gene_venus_mRNA_venus	;
+	]
+	gene_venus_activator_array = Array{Float64,1}()
+	push!(gene_venus_activator_array, 1.0)
+	P_σ70_RNAP = RNAP*f(P_σ70,K_gene_venus_P_σ70,n_gene_venus_P_σ70)
+	push!(gene_venus_activator_array, P_σ70_RNAP)
+	A = sum(W.*gene_venus_activator_array)
 
-	# venus_promoter repressor set
-	venus_promoter_repressor_set = Array{Float64,1}()
-	P_gntR_active = P_gntR*(1.0 - f(gluconate, K, n))
-	push!(venus_promoter_repressor_set, P_gntR_active)
-	R = sum(W.*venus_promoter_repressor_set)
+	# gene_venus repression - 
+W = [
+			W_gene_venus	;
+			W_gene_venus_mRNA_venus	;
+	]
+	gene_venus_repressor_array = Array{Float64,1}()
+	push!(gene_venus_repressor_array, f(P_gntR,K_gene_venus_P_gntR,n_gene_venus_P_gntR)
+	R = sum(W.*gene_venus_repressor_array)
 	push!(u_array, u(A,R))
-	# gntR_promoter: gene_gntR -[RNAP]- mRNA_gntR
-	# gntR_promoter activator set
-	gntR_promoter_activator_set = Array{Float64,1}()
-	push!(gntR_promoter_activator_set, 1.0)
-	P_σ70_RNAP = RNAP*f(P_σ70,K,n)
-	push!(gntR_promoter_activator_set, P_σ70_RNAP)
-	A = sum(W.*gntR_promoter_activator_set)
-	R = 0
+
+	# gene_gntR activation - 
+	W = [
+			W_gene_gntR	;
+			W_gene_gntR_mRNA_gntR	;
+	]
+	gene_gntR_activator_array = Array{Float64,1}()
+	push!(gene_gntR_activator_array, 1.0)
+	P_σ70_RNAP = RNAP*f(P_σ70,K_gene_gntR_P_σ70,n_gene_gntR_P_σ70)
+	push!(gene_gntR_activator_array, P_σ70_RNAP)
+	A = sum(W.*gene_gntR_activator_array)
+
+	# gene_gntR repression - 
+	R = 0.0
 	push!(u_array, u(A,R))
+
 
     # == CONTROL LOGIC ABOVE ================================================================= #
 

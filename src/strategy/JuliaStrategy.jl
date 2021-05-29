@@ -162,10 +162,97 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
     # initialize -
     buffer = Array{String,1}()
 
+    # internal helper functions: handle activators -
+    function _process_list_of_activators(target::String, output::String, polymerase_symbol::String,
+        list_of_actor_dictionaries)::String
+
+        # initialize -
+        local_buffer = Array{String,1}()
+
+        # generate list of W's -
+        +(local_buffer,"W = ["; suffix="\n")
+        +(local_buffer,"W_$(target)\t;"; prefix="\t\t\t", suffix="\n")
+        for (index, actor_dictionary) in enumerate(list_of_actor_dictionaries)
+            
+            # get actor symbol -
+            actor_symbol = actor_dictionary["symbol"]
+
+            # build the entry -
+            +(local_buffer, "W_$(target)_$(output)\t;"; prefix="\t\t\t", suffix="\n")
+        end
+        +(local_buffer,"]"; suffix="\n",prefix="\t")
+
+
+        +(local_buffer, "$(target)_activator_array = Array{Float64,1}()"; suffix="\n", prefix="\t")
+        +(local_buffer, "push!($(target)_activator_array, 1.0)"; suffix="\n", prefix="\t")
+        for (_, actor_dictionary) in enumerate(list_of_actor_dictionaries)
+
+            # get activator symbol -
+            actor_symbol = actor_dictionary["symbol"]
+            actor_type = actor_dictionary["type"]
+
+            if (actor_type == "positive_sigma_factor")
+                +(local_buffer, "$(actor_symbol)_$(polymerase_symbol) = $(polymerase_symbol)*f($(actor_symbol),K_$(target)_$(actor_symbol),n_$(target)_$(actor_symbol))"; suffix="\n", prefix="\t")
+                +(local_buffer, "push!($(target)_activator_array, $(actor_symbol)_$(polymerase_symbol))"; suffix="\n", prefix="\t")
+            end
+        end
+
+        # build the A term -
+        +(local_buffer, "A = sum(W.*$(target)_activator_array)"; suffix="\n", prefix="\t")
+
+        # flatten and return -
+        flat_buffer = ""
+        [flat_buffer *= line for line in local_buffer]
+        return flat_buffer
+    end
+
+    function _process_list_of_repressors(target::String, output::String, polymerase_symbol::String,
+        list_of_actor_dictionaries)::String
+
+        # initialize -
+        local_buffer = Array{String,1}()
+
+        # do we have any repressors -
+        if (isempty(list_of_actor_dictionaries) == true)
+            +(local_buffer,"R = 0.0"; suffix="\n")
+        else
+            # generate list of W's -
+            +(local_buffer,"W = ["; suffix="\n")
+            +(local_buffer,"W_$(target)\t;"; prefix="\t\t\t", suffix="\n")
+            for (index, actor_dictionary) in enumerate(list_of_actor_dictionaries)
+            
+                # get actor symbol -
+                actor_symbol = actor_dictionary["symbol"]
+
+                # build the entry -
+                +(local_buffer, "W_$(target)_$(output)\t;"; prefix="\t\t\t", suffix="\n")
+            end
+            +(local_buffer,"]"; suffix="\n",prefix="\t")
+
+            # repressor -
+            +(local_buffer, "$(target)_repressor_array = Array{Float64,1}()"; suffix="\n", prefix="\t")
+            for (_, actor_dictionary) in enumerate(list_of_actor_dictionaries)
+
+                # get activator symbol -
+                actor_symbol = actor_dictionary["symbol"]
+                actor_type = actor_dictionary["type"]
+
+                +(local_buffer, "push!($(target)_repressor_array, f($(actor_symbol),K_$(target)_$(actor_symbol),n_$(target)_$(actor_symbol))"; suffix="\n", prefix="\t")
+            end
+    
+            # build the A term -
+            +(local_buffer, "R = sum(W.*$(target)_repressor_array)"; suffix="\n", prefix="\t")
+        end
+
+        # flatten and return -
+        flat_buffer = ""
+        [flat_buffer *= line for line in local_buffer]
+        return flat_buffer
+    end
+
     # get the list of transcription models -
     list_of_transcription_models = ir_dictionary["list_of_transcription_models"]
-    number_of_transcription_models = length(list_of_transcription_models)
-    for (index,model_dictionary) in enumerate(list_of_transcription_models)
+    for (index, model_dictionary) in enumerate(list_of_transcription_models)
         
         # get data from the model dictionary -
         title = model_dictionary["title"]
@@ -173,98 +260,78 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
         output = model_dictionary["output"]
         polymerase_symbol = model_dictionary["polymerase_symbol"]
 
-        # comment string -
-        comment_string = "# $(title): $(input) -[$(polymerase_symbol)]- $(output)"
-
-        # for this promoyer - get the list of activators
-        initialize_activator_set = "$(title)_activator_set = Array{Float64,1}()\n"
-        initialize_activator_set *= "\tpush!($(title)_activator_set, 1.0)"
-
+        # process: list of activators -
         list_of_activators = model_dictionary["list_of_activators"]
-        local_activator_buffer = ""
-        for (index, activator_dictionary) in enumerate(list_of_activators)
-            
-            # get activator symbol -
-            activator_symbol = activator_dictionary["symbol"]
-            activator_type = activator_dictionary["type"]
+        activator_clause = _process_list_of_activators(input, output, polymerase_symbol,list_of_activators)
+        +(buffer, "# $(input) activation - "; suffix="\n", prefix="\t")
+        +(buffer, "$(activator_clause)"; suffix="\n")
 
-            # check: if sigma factor, then actor is bound to RNAP
-            if (activator_type == "positive_sigma_factor")
-                local_activator_buffer *= "$(activator_symbol)_$(polymerase_symbol) = $(polymerase_symbol)*f($(activator_symbol),K,n)\n"
-                local_activator_buffer *= "\tpush!($(title)_activator_set, $(activator_symbol)_$(polymerase_symbol))"
-            else
-                # nothibng for now ...
-            end
-        end
-        numerator_string = "A = sum(W.*$(title)_activator_set)"
-
-        # for this promoter - process the list of repressors 
+        # process: list of repressors -
         list_of_repressors = model_dictionary["list_of_repressors"]
-        initialize_repressor_set = "$(title)_repressor_set = Array{Float64,1}()"
-        local_repressor_buffer = ""
-        for (index, repressor_dictionary) in enumerate(list_of_repressors)
-        
-            # get repressor symbol -
-            repressor_symbol = repressor_dictionary["symbol"]
-            repressor_type = repressor_dictionary["type"]
-
-            # check the type -
-            if (repressor_type == "negative_protein_repressor")
-                
-                # if we get here, then we have a counter agent -
-                counter_agent = repressor_dictionary["counter_agent"]
-                
-                # build the activate component -
-                local_repressor_buffer *= "$(repressor_symbol)_active = $(repressor_symbol)*(1.0 - f($(counter_agent), K, n))\n"
-                local_repressor_buffer *= "\tpush!($(title)_repressor_set, $(repressor_symbol)_active)"
-
-            else
-                # nothing for now -
-            end
-        end
-
-        repressor_term_list = "R = 0"
-        if (isempty(list_of_repressors) == false)
-            repressor_term_list = "R = sum(W.*$(title)_repressor_set)"
-        end 
-
-
-        # layout -
-        if (index==1)
-        
-            # setup comment -
-            +(buffer, comment_string; suffix="\n")
-        
-        else
-            
-            # setup comment -
-            +(buffer, comment_string; suffix="\n", prefix="\t")
-        end
-
-        
-        # write the activator lines -
-        if (isempty(list_of_activators) == false)
-            +(buffer, "# $(title) activator set"; prefix="\t", suffix="\n")
-            +(buffer, initialize_activator_set; prefix="\t", suffix="\n")
-            +(buffer, local_activator_buffer; prefix="\t", suffix="\n")
-            +(buffer, numerator_string; prefix="\t", suffix="\n")
-            
-            if (isempty(list_of_repressors) == false)
-                +(buffer,"\n")
-            end
-        end
-
-
-        if (isempty(list_of_repressors) == false)
-            +(buffer, "# $(title) repressor set"; prefix="\t", suffix="\n")
-            +(buffer, initialize_repressor_set; prefix="\t", suffix="\n")
-            +(buffer, local_repressor_buffer; prefix="\t", suffix="\n")
-            +(buffer, repressor_term_list; prefix="\t", suffix="\n")  
-        else 
-            +(buffer, repressor_term_list; prefix="\t", suffix="\n") 
-        end
-
+        repressor_clause = _process_list_of_repressors(input, output, polymerase_symbol, list_of_repressors)
+        +(buffer, "# $(input) repression - "; suffix="\n", prefix="\t")
+        +(buffer, "$(repressor_clause)")
         +(buffer, "push!(u_array, u(A,R))"; suffix="\n", prefix="\t")
+        +(buffer,"\n")
+
+        # compute -
+        # +(buffer, "push!(u_array, u(A,R))"; suffix="\n", prefix="\t")
+
+        # # comment string -
+        # +(buffer, "# $(title): $(input) -[$(polymerase_symbol)]- $(output)"; suffix="\n", prefix="\t")
+        # +(buffer, "$(title)_activator_set = Array{Float64,1}()"; suffix="\n", prefix="\t")
+        # +(buffer, "push!($(title)_activator_set, 1.0)"; suffix="\n", prefix="\t")
+
+        # local_actor_buffer = Array{String,1}()
+        # for (index, activator_dictionary) in enumerate(list_of_activators)
+            
+        #     # get activator symbol -
+        #     activator_symbol = activator_dictionary["symbol"]
+        #     activator_type = activator_dictionary["type"]
+
+        #     # cache -
+        #     push!(local_actor_buffer, activator_symbol)
+
+        #     # check: if sigma factor, then actor is bound to RNAP
+        #     if (activator_type == "positive_sigma_factor")
+        #         +(buffer, "$(activator_symbol)_$(polymerase_symbol) = $(polymerase_symbol)*f($(activator_symbol),K_$(input)_$(activator_symbol),n_$(input)_$(activator_symbol))"; suffix="\n", prefix="\t")
+        #         +(buffer, "push!($(title)_activator_set, $(activator_symbol)_$(polymerase_symbol))"; suffix="\n", prefix="\t")
+        #     else
+        #         # nothibng for now ...
+        #     end
+        # end
+        # +(buffer, "A = sum(W.*$(title)_activator_set)"; suffix="\n", prefix="\t")
+    
+        # # add a space -
+        # +(buffer, "\n")
+
+        # # for this promoter - process the list of repressors 
+        
+        # for (index, repressor_dictionary) in enumerate(list_of_repressors)
+        
+        #     # get repressor symbol -
+        #     repressor_symbol = repressor_dictionary["symbol"]
+        #     repressor_type = repressor_dictionary["type"]
+
+        #     # check the type -
+        #     if (repressor_type == "negative_protein_repressor")
+                
+        #         # if we get here, then we have a counter agent -
+        #         counter_agent = repressor_dictionary["counter_agent"]
+                
+        #         # build the activate component -
+        #         +(buffer, "$(repressor_symbol)_active = $(repressor_symbol)*(1.0 - f($(counter_agent), K_$(input)_$(repressor_symbol), n_$(input)_$(repressor_symbol)))"; suffix="\n", prefix="\t")
+        #         +(buffer, "push!($(title)_repressor_set, $(repressor_symbol)_active)"; suffix="\n", prefix="\t")
+        #     else
+        #         # nothing for now -
+        #     end
+        # end
+
+        # if (isempty(list_of_repressors) == false)
+        #     +(buffer, "R = sum(W.*$(title)_repressor_set)"; suffix="\n", prefix="\t")
+        # end
+
+        # +(buffer, "push!(u_array, u(A,R))"; suffix="\n", prefix="\t")
     end
 
     # flatten and return -
