@@ -80,8 +80,10 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 
 
     # == CONTROL LOGIC BELOW ================================================================= #
-    	# gene_venus activation - 
-W = [
+    	
+	# - gene_venus --------------------------------------------------------------------------------------------- 
+	# gene_venus activation - 
+	W = [
 			W_gene_venus	;
 			W_gene_venus_mRNA_venus	;
 	]
@@ -92,15 +94,17 @@ W = [
 	A = sum(W.*gene_venus_activator_array)
 
 	# gene_venus repression - 
-W = [
-			W_gene_venus	;
+	W = [
 			W_gene_venus_mRNA_venus	;
 	]
 	gene_venus_repressor_array = Array{Float64,1}()
-	push!(gene_venus_repressor_array, f(P_gntR,K_gene_venus_P_gntR,n_gene_venus_P_gntR)
+	P_gntR_active = P_gntR*(1.0 - f(M_gluconate_c, K_gene_venus_P_gntR, n_gene_venus_P_gntR))
+	push!(gene_venus_repressor_array,P_gntR_active)
 	R = sum(W.*gene_venus_repressor_array)
 	push!(u_array, u(A,R))
 
+	
+	# - gene_gntR --------------------------------------------------------------------------------------------- 
 	# gene_gntR activation - 
 	W = [
 			W_gene_gntR	;

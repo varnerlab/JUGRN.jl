@@ -170,7 +170,7 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
         local_buffer = Array{String,1}()
 
         # generate list of W's -
-        +(local_buffer,"W = ["; suffix="\n")
+        +(local_buffer,"W = ["; suffix="\n", prefix="\t")
         +(local_buffer,"W_$(target)\t;"; prefix="\t\t\t", suffix="\n")
         for (index, actor_dictionary) in enumerate(list_of_actor_dictionaries)
             
@@ -214,11 +214,10 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
 
         # do we have any repressors -
         if (isempty(list_of_actor_dictionaries) == true)
-            +(local_buffer,"R = 0.0"; suffix="\n")
+            +(local_buffer,"R = 0.0"; suffix="\n",prefix="\t")
         else
             # generate list of W's -
-            +(local_buffer,"W = ["; suffix="\n")
-            +(local_buffer,"W_$(target)\t;"; prefix="\t\t\t", suffix="\n")
+            +(local_buffer,"W = ["; suffix="\n", prefix="\t")
             for (index, actor_dictionary) in enumerate(list_of_actor_dictionaries)
             
                 # get actor symbol -
@@ -236,8 +235,15 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
                 # get activator symbol -
                 actor_symbol = actor_dictionary["symbol"]
                 actor_type = actor_dictionary["type"]
+                counter_agent = actor_dictionary["counter_agent"]
 
-                +(local_buffer, "push!($(target)_repressor_array, f($(actor_symbol),K_$(target)_$(actor_symbol),n_$(target)_$(actor_symbol))"; suffix="\n", prefix="\t")
+                if (actor_type == "negative_protein_repressor")
+                    
+                    +(local_buffer, "$(actor_symbol)_active = $(actor_symbol)*(1.0 - f($(counter_agent), K_$(target)_$(actor_symbol), n_$(target)_$(actor_symbol)))"; suffix="\n", prefix="\t")
+                    +(local_buffer, "push!($(target)_repressor_array,$(actor_symbol)_active)"; prefix="\t", suffix="\n")
+                else
+                    +(local_buffer, "push!($(target)_repressor_array, f($(actor_symbol),K_$(target)_$(actor_symbol),n_$(target)_$(actor_symbol))"; suffix="\n", prefix="\t")
+                end
             end
     
             # build the A term -
@@ -263,6 +269,8 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
         # process: list of activators -
         list_of_activators = model_dictionary["list_of_activators"]
         activator_clause = _process_list_of_activators(input, output, polymerase_symbol,list_of_activators)
+        +(buffer,"\n";prefix="\t")
+        +(buffer,"# - $(input) --------------------------------------------------------------------------------------------- ";suffix="\n", prefix="\t")
         +(buffer, "# $(input) activation - "; suffix="\n", prefix="\t")
         +(buffer, "$(activator_clause)"; suffix="\n")
 

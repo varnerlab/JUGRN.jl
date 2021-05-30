@@ -79,7 +79,7 @@
                 {
                     "symbol": "P_gntR",
                     "type": "negative_protein_repressor",
-                    "counter_agent": "gluconate"
+                    "counter_agent": "M_gluconate_c"
                 }
             ]
         },
