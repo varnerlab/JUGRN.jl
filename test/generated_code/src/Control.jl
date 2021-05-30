@@ -123,8 +123,6 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 
     # == CONTROL LOGIC ABOVE ================================================================= #
 
-	@show u_array
-
     # return -
     return u_array
 end

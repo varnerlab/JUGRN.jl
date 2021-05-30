@@ -78,6 +78,7 @@ function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float6
 	𝛳_P_gntR = model_parameter_array[model_parameter_index_map[:𝛳_P_gntR]]
 	𝛳_P_venus = model_parameter_array[model_parameter_index_map[:𝛳_P_venus]]
 
+
     # compute the transcription kinetic limit array -
     push!(kinetic_limit_array, r(k_cat_characteristic,LX,972,RNAP,𝛕_gene_venus,K_gene_venus,gene_venus))
 	push!(kinetic_limit_array, r(k_cat_characteristic,LX,972,RNAP,𝛕_gene_gntR,K_gene_gntR,gene_gntR))

@@ -667,6 +667,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
 
         # write the template -
         template=mt"""
+        {{copyright_header_text}}
         function generate_problem_dictionary()::Dict{String,Any}
 
             # initialize -
