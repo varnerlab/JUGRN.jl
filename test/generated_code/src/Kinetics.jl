@@ -28,6 +28,8 @@ function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float6
     
     # initialize -
     kinetic_limit_array = Array{Float64,1}()
+    model_parameter_array = problem_dictionary["model_parameter_array"]
+    model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
     system_array = problem_dictionary["system_concentration_array"]
     eX = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
     LX = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
@@ -91,8 +93,10 @@ function calculate_translation_kinetic_limit_array(t::Float64, x::Array{Float64,
     # initialize -
     kinetic_limit_array = Array{Float64,1}()
     system_array = problem_dictionary["system_concentration_array"]
-    eL = problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"]         # default units: aa/s
-    LL = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"]       # default units: aa
+    model_parameter_array = problem_dictionary["model_parameter_array"]
+    model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
+    eL = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
+    LL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"].parameter_value)       # default units: aa
     k_cat_characteristic = (eL/LL)
 
     # helper function -
@@ -153,6 +157,8 @@ function calculate_dilution_degradation_array(t::Float64, x::Array{Float64,1},
     # initialize -
     μ = problem_dictionary["specific_growth_rate"]
     degradation_dilution_array = Array{Float64,1}()
+    model_parameter_array = problem_dictionary["model_parameter_array"]
+    model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
     
     # alias the model species -
     gene_gntR = x[1]

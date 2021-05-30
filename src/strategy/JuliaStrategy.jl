@@ -802,6 +802,8 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             
             # initialize -
             kinetic_limit_array = Array{Float64,1}()
+            model_parameter_array = problem_dictionary["model_parameter_array"]
+            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
             system_array = problem_dictionary["system_concentration_array"]
             eX = problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"]       # default units: nt/s
             LX = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"]    # default units: nt
@@ -832,6 +834,8 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             # initialize -
             kinetic_limit_array = Array{Float64,1}()
             system_array = problem_dictionary["system_concentration_array"]
+            model_parameter_array = problem_dictionary["model_parameter_array"]
+            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
             eL = problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"]         # default units: aa/s
             LL = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"]       # default units: aa
             k_cat_characteristic = (eL/LL)
@@ -861,6 +865,8 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             # initialize -
             μ = problem_dictionary["specific_growth_rate"]
             degradation_dilution_array = Array{Float64,1}()
+            model_parameter_array = problem_dictionary["model_parameter_array"]
+            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
             
             # alias the model species -
             {{model_species_alias_block}}
@@ -1139,7 +1145,6 @@ function generate_driver_program_component(model::VLJuliaModelObject, ir_diction
         # build template -
         template=mt"""
         {{copyright_header_text}}
-
         # include -
         include("Include.jl")
 

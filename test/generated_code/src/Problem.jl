@@ -156,8 +156,10 @@ function generate_problem_dictionary()::Dict{String,Any}
 
         # == DO NOT EDIT BELOW THIS LINE ========================================================== #
         problem_dictionary["initial_condition_array"] = initial_condition_array
-		problem_dictionary["number_of_states"] = length(initial_condition_array)
-        problem_dictionary["system_concentration_array"] = system_concentration_array
+        problem_dictionary["number_of_states"] = length(initial_condition_array)
+        problem_dictionary["number_of_transcription_processes"] = 2
+		problem_dictionary["number_of_translation_processes"] = 2
+		problem_dictionary["system_concentration_array"] = system_concentration_array
         problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
         problem_dictionary["model_parameter_array"] = model_parameter_array
         problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
