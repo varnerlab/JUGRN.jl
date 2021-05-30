@@ -178,7 +178,7 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
             actor_symbol = actor_dictionary["symbol"]
 
             # build the entry -
-            +(local_buffer, "W_$(target)_$(output)\t;"; prefix="\t\t\t", suffix="\n")
+            +(local_buffer, "W_$(target)_$(actor_symbol)\t;"; prefix="\t\t\t", suffix="\n")
         end
         +(local_buffer,"]"; suffix="\n",prefix="\t")
 
@@ -224,7 +224,7 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
                 actor_symbol = actor_dictionary["symbol"]
 
                 # build the entry -
-                +(local_buffer, "W_$(target)_$(output)\t;"; prefix="\t\t\t", suffix="\n")
+                +(local_buffer, "W_$(target)_$(actor_symbol)\t;"; prefix="\t\t\t", suffix="\n")
             end
             +(local_buffer,"]"; suffix="\n",prefix="\t")
 
@@ -281,65 +281,6 @@ function _build_u_variable_snippet(model::VLJuliaModelObject, ir_dictionary::Dic
         +(buffer, "$(repressor_clause)")
         +(buffer, "push!(u_array, u(A,R))"; suffix="\n", prefix="\t")
         +(buffer,"\n")
-
-        # compute -
-        # +(buffer, "push!(u_array, u(A,R))"; suffix="\n", prefix="\t")
-
-        # # comment string -
-        # +(buffer, "# $(title): $(input) -[$(polymerase_symbol)]- $(output)"; suffix="\n", prefix="\t")
-        # +(buffer, "$(title)_activator_set = Array{Float64,1}()"; suffix="\n", prefix="\t")
-        # +(buffer, "push!($(title)_activator_set, 1.0)"; suffix="\n", prefix="\t")
-
-        # local_actor_buffer = Array{String,1}()
-        # for (index, activator_dictionary) in enumerate(list_of_activators)
-            
-        #     # get activator symbol -
-        #     activator_symbol = activator_dictionary["symbol"]
-        #     activator_type = activator_dictionary["type"]
-
-        #     # cache -
-        #     push!(local_actor_buffer, activator_symbol)
-
-        #     # check: if sigma factor, then actor is bound to RNAP
-        #     if (activator_type == "positive_sigma_factor")
-        #         +(buffer, "$(activator_symbol)_$(polymerase_symbol) = $(polymerase_symbol)*f($(activator_symbol),K_$(input)_$(activator_symbol),n_$(input)_$(activator_symbol))"; suffix="\n", prefix="\t")
-        #         +(buffer, "push!($(title)_activator_set, $(activator_symbol)_$(polymerase_symbol))"; suffix="\n", prefix="\t")
-        #     else
-        #         # nothibng for now ...
-        #     end
-        # end
-        # +(buffer, "A = sum(W.*$(title)_activator_set)"; suffix="\n", prefix="\t")
-    
-        # # add a space -
-        # +(buffer, "\n")
-
-        # # for this promoter - process the list of repressors 
-        
-        # for (index, repressor_dictionary) in enumerate(list_of_repressors)
-        
-        #     # get repressor symbol -
-        #     repressor_symbol = repressor_dictionary["symbol"]
-        #     repressor_type = repressor_dictionary["type"]
-
-        #     # check the type -
-        #     if (repressor_type == "negative_protein_repressor")
-                
-        #         # if we get here, then we have a counter agent -
-        #         counter_agent = repressor_dictionary["counter_agent"]
-                
-        #         # build the activate component -
-        #         +(buffer, "$(repressor_symbol)_active = $(repressor_symbol)*(1.0 - f($(counter_agent), K_$(input)_$(repressor_symbol), n_$(input)_$(repressor_symbol)))"; suffix="\n", prefix="\t")
-        #         +(buffer, "push!($(title)_repressor_set, $(repressor_symbol)_active)"; suffix="\n", prefix="\t")
-        #     else
-        #         # nothing for now -
-        #     end
-        # end
-
-        # if (isempty(list_of_repressors) == false)
-        #     +(buffer, "R = sum(W.*$(title)_repressor_set)"; suffix="\n", prefix="\t")
-        # end
-
-        # +(buffer, "push!(u_array, u(A,R))"; suffix="\n", prefix="\t")
     end
 
     # flatten and return -
@@ -678,8 +619,30 @@ function _build_degradation_dilution_snippet(model::VLJuliaModelObject,
     return flat_buffer
 end
 
+function _build_system_dimension_block(model::VLJuliaModelObject, 
+    ir_dictionary::Dict{String,Any})::String
+
+    # initialize -
+    buffer = Array{String,1}()
+
+    # dimensions info for the ir -
+    number_of_transcription_models = ir_dictionary["number_of_transcription_models"]
+    number_of_translation_models = ir_dictionary["number_of_translation_models"]
+
+    # get transcription block -
+    +(buffer, "\n")
+    +(buffer,"number_of_transcription_processes = $(number_of_transcription_models)"; prefix="\t", suffix="\n")
+    +(buffer,"number_of_translation_processes = $(number_of_translation_models)"; prefix="\t", suffix="\n")
+
+    # flatten and return -
+    flat_buffer = ""
+    [flat_buffer *= line for line in buffer]
+    return flat_buffer
+end
+
 # == MAIN METHODS BELOW HERE ======================================================================= #
-function generate_data_dictionary_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
+function generate_data_dictionary_program_component(model::VLJuliaModelObject, 
+    ir_dictionary::Dict{String,Any})::NamedTuple
 
     # initialize -
     filename = "Problem.jl"
@@ -693,6 +656,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
         template_dictionary["initial_condition_array_block"] = _build_ic_array_snippet(model, ir_dictionary)
         template_dictionary["system_species_array_block"] = _build_system_species_concentration_snippet(model, ir_dictionary)
         template_dictionary["system_type_flag"] = _build_system_type_snippet(model, ir_dictionary)
+        template_dictionary["system_dimension_block"] = _build_system_dimension_block(model, ir_dictionary)
         
         # we get the parameter array back in addition 2 the flat buffer for this method -
         results_tuple = _build_model_parameter_array_snippet(model, ir_dictionary)
@@ -705,6 +669,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
         # write the template -
         template = mt"""
         {{copyright_header_text}}
+        
         function generate_problem_dictionary()::Dict{String,Any}
             
             # initialize -
@@ -719,6 +684,9 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
 
                 # build the species initial condition array -
                 {{initial_condition_array_block}}
+
+                # compute/set system dimensions -
+                {{system_dimension_block}}
 
                 # build the system species concentration array -
                 {{system_species_array_block}}
@@ -735,12 +703,14 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
                 # setup the inverse parameter symbol index map -
                 {{inverse_model_parameter_symbol_index_map_block}}
 
-                # growth rate (default: h^-1)
+                # specific growth rate (default units: h^-1)
                 μ = 0.0 # default units: h^-1
 
                 # == DO NOT EDIT BELOW THIS LINE ========================================================== #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
                 problem_dictionary["number_of_states"] = length(initial_condition_array)
+                problem_dictionary["number_of_transcription_processes"] = number_of_transcription_processes
+		        problem_dictionary["number_of_translation_processes"] = number_of_translation_processes
                 problem_dictionary["system_concentration_array"] = system_concentration_array
                 problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
                 problem_dictionary["model_parameter_array"] = model_parameter_array
@@ -805,8 +775,8 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             model_parameter_array = problem_dictionary["model_parameter_array"]
             model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
             system_array = problem_dictionary["system_concentration_array"]
-            eX = problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"]       # default units: nt/s
-            LX = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"]    # default units: nt
+            eX = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
+            LX = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
             k_cat_characteristic = (eX/LX)
 
             # helper function -
@@ -836,8 +806,8 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
             system_array = problem_dictionary["system_concentration_array"]
             model_parameter_array = problem_dictionary["model_parameter_array"]
             model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
-            eL = problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"]         # default units: aa/s
-            LL = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"]       # default units: aa
+            eL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
+            LL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"].parameter_value)       # default units: aa
             k_cat_characteristic = (eL/LL)
 
             # helper function -

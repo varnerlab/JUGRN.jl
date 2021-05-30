@@ -31,8 +31,8 @@ function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float6
     model_parameter_array = problem_dictionary["model_parameter_array"]
     model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
     system_array = problem_dictionary["system_concentration_array"]
-    eX = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
-    LX = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
+    eX = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
+    LX = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
     k_cat_characteristic = (eX/LX)
 
     # helper function -
@@ -95,7 +95,7 @@ function calculate_translation_kinetic_limit_array(t::Float64, x::Array{Float64,
     system_array = problem_dictionary["system_concentration_array"]
     model_parameter_array = problem_dictionary["model_parameter_array"]
     model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
-    eL = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
+    eL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
     LL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"].parameter_value)       # default units: aa
     k_cat_characteristic = (eL/LL)
 
