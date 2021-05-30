@@ -740,6 +740,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject, i
 
                 # == DO NOT EDIT BELOW THIS LINE ========================================================== #
                 problem_dictionary["initial_condition_array"] = initial_condition_array
+                problem_dictionary["number_of_states"] = length(initial_condition_array)
                 problem_dictionary["system_concentration_array"] = system_concentration_array
                 problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
                 problem_dictionary["model_parameter_array"] = model_parameter_array
@@ -1122,5 +1123,76 @@ function generate_include_program_component(model::VLJuliaModelObject, ir_dictio
     catch error
         rethrow(error)
     end
+end
+
+function generate_driver_program_component(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::NamedTuple
+
+    # initialize -
+    filename = "Solve.jl"
+    template_dictionary = Dict{String,Any}()
+
+    try
+
+        # build snippets -
+        template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
+
+        # build template -
+        template=mt"""
+        {{copyright_header_text}}
+
+        # include -
+        include("Include.jl")
+
+        function solve_dynamic_problem(time_start::Float64, time_stop::Float64, time_step::Float64, 
+            problem_dictionary::Dict{String,Any})
+
+            # Get required stuff from the problem struct -
+            time_span = (time_start,time_stop)
+            initial_condition_array = problem_dictionary["initial_condition_array"];
+
+            # build problem object -
+            problem_object = ODEProblem(Balances, initial_condition_array, time_span, problem_dictionary)
+
+            # solve -
+            solution = solve(problem_object, AutoTsit5(Rosenbrock23(autodiff=false)), reltol=1e-8,abstol=1e-8)
+
+            # pull solution apart -
+            T = solution.t
+
+            # initialize the state array -
+            number_of_times_steps = length(T)
+            number_of_states = length(initial_condition_array)
+            X = zeros(number_of_times_steps,number_of_states)
+            for step_index=1:number_of_times_steps
+
+                # grab the solution 
+                soln_array = solution.u[step_index]
+                for state_index = 1:number_of_states
+                    X[step_index, state_index] = soln_array[state_index]
+                end
+            end
+
+            # return -
+            return (T,X)
+        end
+
+        function solve_static_problem(problem_dictionary::Dict{String,Any})
+        end
+
+        
+        """
+
+        # render step -
+        flat_buffer = render(template, template_dictionary)
+        
+        # package up into a NamedTuple -
+        program_component = (buffer=flat_buffer, filename=filename, component_type=:buffer)
+
+        # return -
+        return program_component
+    catch error
+        rethrow(error)
+    end
+
 end
 # ================================================================================================= #"kinetic_limit_array

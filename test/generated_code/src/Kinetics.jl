@@ -29,8 +29,8 @@ function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float6
     # initialize -
     kinetic_limit_array = Array{Float64,1}()
     system_array = problem_dictionary["system_concentration_array"]
-    eX = problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"]       # default units: nt/s
-    LX = problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"]    # default units: nt
+    eX = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
+    LX = parse(Float64,problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
     k_cat_characteristic = (eX/LX)
 
     # helper function -

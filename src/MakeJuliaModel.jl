@@ -62,6 +62,10 @@ function make_julia_model(problem::VLJuliaModelObject;
         init_program_component = generate_init_program_component(problem, ir_dictionary)
         push!(root_component_set, init_program_component)
 
+        # build the include program component -
+        driver_program_component = generate_driver_program_component(problem, ir_dictionary)
+        push!(root_component_set, driver_program_component)
+
         # build the stoichiometric_matrix -
         stoichiometric_matrix_component = generate_stochiometric_matrix_component(ir_dictionary)
         push!(network_component_set, stoichiometric_matrix_component)

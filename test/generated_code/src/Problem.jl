@@ -26,7 +26,7 @@ function generate_problem_dictionary()::Dict{String,Any}
     
     # initialize -
     problem_dictionary = Dict{String,Any}()
-    system_type_flag = 	:CF_PURE
+    system_type_flag = 	:CF_TXTL
 
     try
 
@@ -156,6 +156,7 @@ function generate_problem_dictionary()::Dict{String,Any}
 
         # == DO NOT EDIT BELOW THIS LINE ========================================================== #
         problem_dictionary["initial_condition_array"] = initial_condition_array
+		problem_dictionary["number_of_states"] = length(initial_condition_array)
         problem_dictionary["system_concentration_array"] = system_concentration_array
         problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
         problem_dictionary["model_parameter_array"] = model_parameter_array
