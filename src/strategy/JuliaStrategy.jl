@@ -630,9 +630,9 @@ function _build_system_dimension_block(model::VLJuliaModelObject,
     number_of_translation_models = ir_dictionary["number_of_translation_models"]
 
     # get transcription block -
-    +(buffer, "\n")
-    +(buffer,"number_of_transcription_processes = $(number_of_transcription_models)"; prefix="\t", suffix="\n")
-    +(buffer,"number_of_translation_processes = $(number_of_translation_models)"; prefix="\t", suffix="\n")
+    +(buffer, "\n"; prefix="\t")
+    +(buffer,"number_of_transcription_processes = $(number_of_transcription_models)"; prefix="\t\t", suffix="\n")
+    +(buffer,"number_of_translation_processes = $(number_of_translation_models)"; prefix="\t\t", suffix="\n")
 
     # flatten and return -
     flat_buffer = ""
@@ -646,7 +646,6 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
 
     # initialize -
     filename = "Problem.jl"
-    buffer = Array{String,1}()
     template_dictionary = Dict{String,Any}()
 
     try 
@@ -667,11 +666,9 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
         template_dictionary["inverse_model_parameter_symbol_index_map_block"] = _build_inverse_model_parameter_symbol_index_map(results_tuple.parameter_symbol_array)
 
         # write the template -
-        template = mt"""
-        {{copyright_header_text}}
-        
+        template=mt"""
         function generate_problem_dictionary()::Dict{String,Any}
-            
+
             # initialize -
             problem_dictionary = Dict{String,Any}()
             system_type_flag = {{system_type_flag}}
@@ -685,7 +682,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
                 # build the species initial condition array -
                 {{initial_condition_array_block}}
 
-                # compute/set system dimensions -
+                # setup the system dimension -
                 {{system_dimension_block}}
 
                 # build the system species concentration array -
@@ -710,7 +707,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
                 problem_dictionary["initial_condition_array"] = initial_condition_array
                 problem_dictionary["number_of_states"] = length(initial_condition_array)
                 problem_dictionary["number_of_transcription_processes"] = number_of_transcription_processes
-		        problem_dictionary["number_of_translation_processes"] = number_of_translation_processes
+                problem_dictionary["number_of_translation_processes"] = number_of_translation_processes
                 problem_dictionary["system_concentration_array"] = system_concentration_array
                 problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
                 problem_dictionary["model_parameter_array"] = model_parameter_array
@@ -958,7 +955,7 @@ function generate_control_program_component(model::VLJuliaModelObject,
             number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
             model_parameter_array = problem_dictionary["model_parameter_array"]
             model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
-            u_array = Array{Float64,1}(undef,number_of_transcription_processes)
+            u_array = Array{Float64,1}()
 
             # local helper functions -
             f(x,K,n) = (x^n)/(K^n+x^n)

@@ -31,7 +31,7 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
     number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
     model_parameter_array = problem_dictionary["model_parameter_array"]
     model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
-    u_array = Array{Float64,1}(undef,number_of_transcription_processes)
+    u_array = Array{Float64,1}()
 
     # local helper functions -
     f(x,K,n) = (x^n)/(K^n+x^n)
@@ -122,6 +122,8 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 
 
     # == CONTROL LOGIC ABOVE ================================================================= #
+
+	@show u_array
 
     # return -
     return u_array
