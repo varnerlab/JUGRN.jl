@@ -22,31 +22,31 @@
 # THE SOFTWARE.
 # ----------------------------------------------------------------------------------- #
 
-function Balances(dx,x, problem_dictionary,t)
+function Balances(dx, x, parameter_dictionary, t)
 
     # system dimensions and structural matricies -
-    number_of_states = problem_dictionary["number_of_states"]
-    DM = problem_dictionary["dilution_degradation_matrix"]
-    SM = problem_dictionary["stoichiometric_matrix"]
+    number_of_states = parameter_dictionary["number_of_states"]
+    DM = parameter_dictionary["dilution_degradation_matrix"]
+    SM = parameter_dictionary["stoichiometric_matrix"]
      
     # calculate the TX and TL kinetic limit array -
-    transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,problem_dictionary)
-    translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t,x,problem_dictionary)
+    transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t, x, parameter_dictionary)
+    translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t, x, parameter_dictionary)
     
     # calculate the TX and TL control array -
-    u = calculate_transcription_control_array(t,x,problem_dictionary)
-    w = calculate_translation_control_array(t,x,problem_dictionary)
+    u = calculate_transcription_control_array(t, x, parameter_dictionary)
+    w = calculate_translation_control_array(t, x, parameter_dictionary)
 
     # calculate the rate of transcription and translation -
-    rX = transcription_kinetic_limit_array.*u
-    rL = translation_kinetic_limit_array.*w
+    rX = transcription_kinetic_limit_array .* u
+    rL = translation_kinetic_limit_array .* w
     rV = [rX ; rL]
 
     # calculate the degradation and dilution rates -
-    rd = calculate_dilution_degradation_array(t,x,problem_dictionary)
+    rd = calculate_dilution_degradation_array(t, x, parameter_dictionary)
 
     # compute the model equations -
-    dxdt = SM*rV + DM*rd
+    dxdt = SM * rV + DM * rd
 
     # package -
     for index = 1:number_of_states

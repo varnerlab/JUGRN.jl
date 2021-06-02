@@ -25,17 +25,17 @@
 
 # calculate the u-variables -
 function calculate_transcription_control_array(t::Float64, x::Array{Float64,1}, 
-    problem_dictionary::Dict{String,Any})::Array{Float64,1}
+    parameter_dictionary::Dict{String,Any})::Array{Float64,1}
 
     # initialize -
-    number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
-    model_parameter_array = problem_dictionary["model_parameter_array"]
-    model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
+    number_of_transcription_processes = parameter_dictionary["number_of_transcription_processes"]
+    model_parameter_array = parameter_dictionary["model_parameter_array"]
+    model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
     u_array = Array{Float64,1}()
 
     # local helper functions -
-    f(x,K,n) = (x^n)/(K^n+x^n)
-    u(A,R) = A/(1+A+R)
+    f(x, K, n) = (x^n) / (K^n + x^n)
+    u(A, R) = A / (1 + A + R)
 
     # alias the state vector -
     gene_gntR = x[1]
@@ -46,7 +46,7 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	P_venus = x[6]
 
     # alias the system species -
-    system_array = problem_dictionary["system_concentration_array"]
+    system_array = parameter_dictionary["system_concentration_array"]
     RNAP = system_array[1]
 	RIBOSOME = system_array[2]
 	P_σ70 = system_array[3]
@@ -89,19 +89,19 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	]
 	gene_venus_activator_array = Array{Float64,1}()
 	push!(gene_venus_activator_array, 1.0)
-	P_σ70_RNAP = RNAP*f(P_σ70,K_gene_venus_P_σ70,n_gene_venus_P_σ70)
+	P_σ70_RNAP = RNAP * f(P_σ70, K_gene_venus_P_σ70, n_gene_venus_P_σ70)
 	push!(gene_venus_activator_array, P_σ70_RNAP)
-	A = sum(W.*gene_venus_activator_array)
+	A = sum(W .* gene_venus_activator_array)
 
 	# gene_venus repression - 
 	W = [
 			W_gene_venus_P_gntR	;
 	]
 	gene_venus_repressor_array = Array{Float64,1}()
-	P_gntR_active = P_gntR*(1.0 - f(M_gluconate_c, K_gene_venus_P_gntR, n_gene_venus_P_gntR))
-	push!(gene_venus_repressor_array,P_gntR_active)
-	R = sum(W.*gene_venus_repressor_array)
-	push!(u_array, u(A,R))
+	P_gntR_active = P_gntR * (1.0 - f(M_gluconate_c, K_gene_venus_P_gntR, n_gene_venus_P_gntR))
+	push!(gene_venus_repressor_array, P_gntR_active)
+	R = sum(W .* gene_venus_repressor_array)
+	push!(u_array, u(A, R))
 
 	
 	# - gene_gntR --------------------------------------------------------------------------------------------- 
@@ -112,13 +112,13 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	]
 	gene_gntR_activator_array = Array{Float64,1}()
 	push!(gene_gntR_activator_array, 1.0)
-	P_σ70_RNAP = RNAP*f(P_σ70,K_gene_gntR_P_σ70,n_gene_gntR_P_σ70)
+	P_σ70_RNAP = RNAP * f(P_σ70, K_gene_gntR_P_σ70, n_gene_gntR_P_σ70)
 	push!(gene_gntR_activator_array, P_σ70_RNAP)
-	A = sum(W.*gene_gntR_activator_array)
+	A = sum(W .* gene_gntR_activator_array)
 
 	# gene_gntR repression - 
 	R = 0.0
-	push!(u_array, u(A,R))
+	push!(u_array, u(A, R))
 
 
     # == CONTROL LOGIC ABOVE ================================================================= #
@@ -129,10 +129,10 @@ end
 
 # calculate the w-variables -
 function calculate_translation_control_array(t::Float64, x::Array{Float64,1}, 
-    problem_dictionary::Dict{String,Any})::Array{Float64,1}
+    parameter_dictionary::Dict{String,Any})::Array{Float64,1}
     
     # defualt: w = 1 for all translation processes -
-    number_of_translation_processes = problem_dictionary["number_of_translation_processes"]
+    number_of_translation_processes = parameter_dictionary["number_of_translation_processes"]
     w = ones(number_of_translation_processes)
     
     # return -

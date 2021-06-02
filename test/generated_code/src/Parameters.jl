@@ -22,17 +22,17 @@
 # THE SOFTWARE.
 # ----------------------------------------------------------------------------------- #
 
-function generate_problem_dictionary()::Dict{String,Any}
+function generate_parameter_dictionary()::Dict{String,Any}
 
     # initialize -
-    problem_dictionary = Dict{String,Any}()
+    parameter_dictionary = Dict{String,Any}()
     system_type_flag = 	:CF_TXTL
 
     try
 
         # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
-        SM = readdlm(joinpath(_PATH_TO_NETWORK,"Network.dat"))
-        DM = readdlm(joinpath(_PATH_TO_NETWORK,"Degradation.dat"))
+        SM = readdlm(joinpath(_PATH_TO_NETWORK, "Network.dat"))
+        DM = readdlm(joinpath(_PATH_TO_NETWORK, "Degradation.dat"))
 
         # build the species initial condition array -
         initial_condition_array = [
@@ -45,7 +45,7 @@ function generate_problem_dictionary()::Dict{String,Any}
 		]
 
         # setup the system dimension -
-        	
+    	
 		number_of_transcription_processes = 2
 		number_of_translation_processes = 2
 
@@ -131,7 +131,7 @@ function generate_problem_dictionary()::Dict{String,Any}
 
 
         # setup the inverse parameter symbol index map -
-        inverse_model_parameter_symbol_index_map = Dict{Int, Symbol}()
+        inverse_model_parameter_symbol_index_map = Dict{Int,Symbol}()
 		inverse_model_parameter_symbol_index_map[1] = :W_gene_venus
 		inverse_model_parameter_symbol_index_map[2] = :W_gene_venus_P_σ70
 		inverse_model_parameter_symbol_index_map[3] = :W_gene_venus_P_gntR
@@ -161,21 +161,21 @@ function generate_problem_dictionary()::Dict{String,Any}
         μ = 0.0 # default units: h^-1
 
         # == DO NOT EDIT BELOW THIS LINE ========================================================== #
-        problem_dictionary["initial_condition_array"] = initial_condition_array
-        problem_dictionary["number_of_states"] = length(initial_condition_array)
-        problem_dictionary["number_of_transcription_processes"] = number_of_transcription_processes
-        problem_dictionary["number_of_translation_processes"] = number_of_translation_processes
-        problem_dictionary["system_concentration_array"] = system_concentration_array
-        problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
-        problem_dictionary["model_parameter_array"] = model_parameter_array
-        problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
-        problem_dictionary["inverse_model_parameter_symbol_index_map"] = inverse_model_parameter_symbol_index_map
-        problem_dictionary["stoichiometric_matrix"] = SM
-        problem_dictionary["dilution_degradation_matrix"] = DM
-        problem_dictionary["specific_growth_rate"] = μ
+        parameter_dictionary["initial_condition_array"] = initial_condition_array
+        parameter_dictionary["number_of_states"] = length(initial_condition_array)
+        parameter_dictionary["number_of_transcription_processes"] = number_of_transcription_processes
+        parameter_dictionary["number_of_translation_processes"] = number_of_translation_processes
+        parameter_dictionary["system_concentration_array"] = system_concentration_array
+        parameter_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
+        parameter_dictionary["model_parameter_array"] = model_parameter_array
+        parameter_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
+        parameter_dictionary["inverse_model_parameter_symbol_index_map"] = inverse_model_parameter_symbol_index_map
+        parameter_dictionary["stoichiometric_matrix"] = SM
+        parameter_dictionary["dilution_degradation_matrix"] = DM
+        parameter_dictionary["specific_growth_rate"] = μ
 
         # return -
-        return problem_dictionary
+        return parameter_dictionary
         # ========================================================================================= #
     catch error
         throw(error)

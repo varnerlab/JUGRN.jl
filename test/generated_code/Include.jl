@@ -34,7 +34,7 @@ using VLModelParametersDB
 using DelimitedFiles
 
 # include my codes -
-include("./src/Problem.jl")
+include("./src/Parameters.jl")
 include("./src/Balances.jl")
 include("./src/Kinetics.jl")
 include("./src/Control.jl")

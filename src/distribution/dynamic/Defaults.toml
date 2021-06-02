@@ -1,4 +1,4 @@
-[problem_dictionary]
+[parameter_dictionary]
 
 # initial concentrations -
 DNA_initial_condition=5.0       # nM

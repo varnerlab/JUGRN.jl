@@ -1,4 +1,4 @@
-[problem_dictionary]
+[parameter_dictionary]
 DNA_initial_condition=5.0      # nM
 RNA_initial_condition=0.0      # nM
 PROTEIN_initial_condition=0.0   # nM

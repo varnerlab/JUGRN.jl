@@ -26,17 +26,17 @@
 include("Include.jl")
 
 function solve_dynamic_problem(time_start::Float64, time_stop::Float64, time_step::Float64, 
-    problem_dictionary::Dict{String,Any})
+    parameter_dictionary::Dict{String,Any})
 
     # Get required stuff from the problem struct -
-    time_span = (time_start,time_stop)
-    initial_condition_array = problem_dictionary["initial_condition_array"];
+    time_span = (time_start, time_stop)
+    initial_condition_array = parameter_dictionary["initial_condition_array"];
 
     # build problem object -
-    problem_object = ODEProblem(Balances, initial_condition_array, time_span, problem_dictionary)
+    problem_object = ODEProblem(Balances, initial_condition_array, time_span, parameter_dictionary)
 
     # solve -
-    solution = solve(problem_object, AutoTsit5(Rosenbrock23(autodiff=false)), reltol=1e-8,abstol=1e-8)
+    solution = solve(problem_object, AutoTsit5(Rosenbrock23(autodiff=false)), reltol=1e-8, abstol=1e-8)
 
     # pull solution apart -
     T = solution.t
@@ -44,8 +44,8 @@ function solve_dynamic_problem(time_start::Float64, time_stop::Float64, time_ste
     # initialize the state array -
     number_of_times_steps = length(T)
     number_of_states = length(initial_condition_array)
-    X = zeros(number_of_times_steps,number_of_states)
-    for step_index=1:number_of_times_steps
+    X = zeros(number_of_times_steps, number_of_states)
+    for step_index = 1:number_of_times_steps
 
         # grab the solution 
         soln_array = solution.u[step_index]
@@ -55,10 +55,10 @@ function solve_dynamic_problem(time_start::Float64, time_stop::Float64, time_ste
     end
 
     # return -
-    return (T,X)
+    return (T, X)
 end
 
-function solve_static_problem(problem_dictionary::Dict{String,Any})
+function solve_static_problem(parameter_dictionary::Dict{String,Any})
 end
 
 

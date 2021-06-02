@@ -18,11 +18,11 @@ function _build_ic_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{
         # what is the value?
         value = 0.0
         if (species_type == :DNA)
-            value = default_dictionary["problem_dictionary"]["DNA_initial_condition"]
+            value = default_dictionary["parameter_dictionary"]["DNA_initial_condition"]
         elseif (species_type == :RNA)
-            value = default_dictionary["problem_dictionary"]["RNA_initial_condition"]
+            value = default_dictionary["parameter_dictionary"]["RNA_initial_condition"]
         elseif (species_type == :PROTEIN)
-            value = default_dictionary["problem_dictionary"]["PROTEIN_initial_condition"]
+            value = default_dictionary["parameter_dictionary"]["PROTEIN_initial_condition"]
         end
 
         +(ic_buffer,"$(value)\t;\t#\t$(species_index)\t$(species_symbol)\tunits: nM\n"; prefix="\t\t\t")
@@ -645,7 +645,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
     ir_dictionary::Dict{String,Any})::NamedTuple
 
     # initialize -
-    filename = "Problem.jl"
+    filename = "Parameters.jl"
     template_dictionary = Dict{String,Any}()
 
     try 
@@ -668,10 +668,10 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
         # write the template -
         template=mt"""
         {{copyright_header_text}}
-        function generate_problem_dictionary()::Dict{String,Any}
+        function generate_default_parameter_dictionary()::Dict{String,Any}
 
             # initialize -
-            problem_dictionary = Dict{String,Any}()
+            parameter_dictionary = Dict{String,Any}()
             system_type_flag = {{system_type_flag}}
 
             try
@@ -705,21 +705,21 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
                 μ = 0.0 # default units: h^-1
 
                 # == DO NOT EDIT BELOW THIS LINE ========================================================== #
-                problem_dictionary["initial_condition_array"] = initial_condition_array
-                problem_dictionary["number_of_states"] = length(initial_condition_array)
-                problem_dictionary["number_of_transcription_processes"] = number_of_transcription_processes
-                problem_dictionary["number_of_translation_processes"] = number_of_translation_processes
-                problem_dictionary["system_concentration_array"] = system_concentration_array
-                problem_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
-                problem_dictionary["model_parameter_array"] = model_parameter_array
-                problem_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
-                problem_dictionary["inverse_model_parameter_symbol_index_map"] = inverse_model_parameter_symbol_index_map
-                problem_dictionary["stoichiometric_matrix"] = SM
-                problem_dictionary["dilution_degradation_matrix"] = DM
-                problem_dictionary["specific_growth_rate"] = μ
+                parameter_dictionary["initial_condition_array"] = initial_condition_array
+                parameter_dictionary["number_of_states"] = length(initial_condition_array)
+                parameter_dictionary["number_of_transcription_processes"] = number_of_transcription_processes
+                parameter_dictionary["number_of_translation_processes"] = number_of_translation_processes
+                parameter_dictionary["system_concentration_array"] = system_concentration_array
+                parameter_dictionary["biophysical_parameters_dictionary"] = biophysical_parameters_dictionary
+                parameter_dictionary["model_parameter_array"] = model_parameter_array
+                parameter_dictionary["model_parameter_symbol_index_map"] = model_parameter_symbol_index_map
+                parameter_dictionary["inverse_model_parameter_symbol_index_map"] = inverse_model_parameter_symbol_index_map
+                parameter_dictionary["stoichiometric_matrix"] = SM
+                parameter_dictionary["dilution_degradation_matrix"] = DM
+                parameter_dictionary["specific_growth_rate"] = μ
 
                 # return -
-                return problem_dictionary
+                return parameter_dictionary
                 # ========================================================================================= #
             catch error
                 throw(error)
@@ -766,15 +766,15 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
         {{copyright_header_text}}
 
         function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float64,1}, 
-            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            parameter_dictionary::Dict{String,Any})::Array{Float64,1}
             
             # initialize -
             kinetic_limit_array = Array{Float64,1}()
-            model_parameter_array = problem_dictionary["model_parameter_array"]
-            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
-            system_array = problem_dictionary["system_concentration_array"]
-            eX = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
-            LX = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
+            model_parameter_array = parameter_dictionary["model_parameter_array"]
+            model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
+            system_array = parameter_dictionary["system_concentration_array"]
+            eX = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
+            LX = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
             k_cat_characteristic = (eX/LX)
 
             # helper function -
@@ -797,15 +797,15 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
         end
 
         function calculate_translation_kinetic_limit_array(t::Float64, x::Array{Float64,1}, 
-            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            parameter_dictionary::Dict{String,Any})::Array{Float64,1}
         
             # initialize -
             kinetic_limit_array = Array{Float64,1}()
-            system_array = problem_dictionary["system_concentration_array"]
-            model_parameter_array = problem_dictionary["model_parameter_array"]
-            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
-            eL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
-            LL = parse(Float64, problem_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"].parameter_value)       # default units: aa
+            system_array = parameter_dictionary["system_concentration_array"]
+            model_parameter_array = parameter_dictionary["model_parameter_array"]
+            model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
+            eL = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
+            LL = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"].parameter_value)       # default units: aa
             k_cat_characteristic = (eL/LL)
 
             # helper function -
@@ -828,13 +828,13 @@ function generate_kinetics_program_component(model::VLJuliaModelObject, ir_dicti
         end
 
         function calculate_dilution_degradation_array(t::Float64, x::Array{Float64,1}, 
-            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            parameter_dictionary::Dict{String,Any})::Array{Float64,1}
             
             # initialize -
-            μ = problem_dictionary["specific_growth_rate"]
+            μ = parameter_dictionary["specific_growth_rate"]
             degradation_dilution_array = Array{Float64,1}()
-            model_parameter_array = problem_dictionary["model_parameter_array"]
-            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
+            model_parameter_array = parameter_dictionary["model_parameter_array"]
+            model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
             
             # alias the model species -
             {{model_species_alias_block}}
@@ -878,20 +878,20 @@ function generate_balances_program_component(model::VLJuliaModelObject,
         # setup the template -
         template = mt"""
         {{copyright_header_text}}
-        function Balances(dx,x, problem_dictionary,t)
+        function Balances(dx,x, parameter_dictionary,t)
 
             # system dimensions and structural matricies -
-            number_of_states = problem_dictionary["number_of_states"]
-            DM = problem_dictionary["dilution_degradation_matrix"]
-            SM = problem_dictionary["stoichiometric_matrix"]
+            number_of_states = parameter_dictionary["number_of_states"]
+            DM = parameter_dictionary["dilution_degradation_matrix"]
+            SM = parameter_dictionary["stoichiometric_matrix"]
              
             # calculate the TX and TL kinetic limit array -
-            transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,problem_dictionary)
-            translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t,x,problem_dictionary)
+            transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,parameter_dictionary)
+            translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t,x,parameter_dictionary)
             
             # calculate the TX and TL control array -
-            u = calculate_transcription_control_array(t,x,problem_dictionary)
-            w = calculate_translation_control_array(t,x,problem_dictionary)
+            u = calculate_transcription_control_array(t,x,parameter_dictionary)
+            w = calculate_translation_control_array(t,x,parameter_dictionary)
 
             # calculate the rate of transcription and translation -
             rX = transcription_kinetic_limit_array.*u
@@ -899,7 +899,7 @@ function generate_balances_program_component(model::VLJuliaModelObject,
             rV = [rX ; rL]
 
             # calculate the degradation and dilution rates -
-            rd = calculate_dilution_degradation_array(t,x,problem_dictionary)
+            rd = calculate_dilution_degradation_array(t,x,parameter_dictionary)
 
             # compute the model equations -
             dxdt = SM*rV + DM*rd
@@ -950,12 +950,12 @@ function generate_control_program_component(model::VLJuliaModelObject,
         
         # calculate the u-variables -
         function calculate_transcription_control_array(t::Float64, x::Array{Float64,1}, 
-            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            parameter_dictionary::Dict{String,Any})::Array{Float64,1}
 
             # initialize -
-            number_of_transcription_processes = problem_dictionary["number_of_transcription_processes"]
-            model_parameter_array = problem_dictionary["model_parameter_array"]
-            model_parameter_index_map = problem_dictionary["model_parameter_symbol_index_map"]
+            number_of_transcription_processes = parameter_dictionary["number_of_transcription_processes"]
+            model_parameter_array = parameter_dictionary["model_parameter_array"]
+            model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
             u_array = Array{Float64,1}()
 
             # local helper functions -
@@ -966,7 +966,7 @@ function generate_control_program_component(model::VLJuliaModelObject,
             {{model_species_alias_block}}
 
             # alias the system species -
-            system_array = problem_dictionary["system_concentration_array"]
+            system_array = parameter_dictionary["system_concentration_array"]
             {{system_species_alias_block}}
 
             # alias the system parameters -
@@ -982,10 +982,10 @@ function generate_control_program_component(model::VLJuliaModelObject,
 
         # calculate the w-variables -
         function calculate_translation_control_array(t::Float64, x::Array{Float64,1}, 
-            problem_dictionary::Dict{String,Any})::Array{Float64,1}
+            parameter_dictionary::Dict{String,Any})::Array{Float64,1}
             
             # defualt: w = 1 for all translation processes -
-            number_of_translation_processes = problem_dictionary["number_of_translation_processes"]
+            number_of_translation_processes = parameter_dictionary["number_of_translation_processes"]
             w = ones(number_of_translation_processes)
             
             # return -
@@ -1117,14 +1117,14 @@ function generate_driver_program_component(model::VLJuliaModelObject, ir_diction
         include("Include.jl")
 
         function solve_dynamic_problem(time_start::Float64, time_stop::Float64, time_step::Float64, 
-            problem_dictionary::Dict{String,Any})
+            parameter_dictionary::Dict{String,Any}, varargs...)
 
             # Get required stuff from the problem struct -
             time_span = (time_start,time_stop)
-            initial_condition_array = problem_dictionary["initial_condition_array"];
+            initial_condition_array = parameter_dictionary["initial_condition_array"];
 
             # build problem object -
-            problem_object = ODEProblem(Balances, initial_condition_array, time_span, problem_dictionary)
+            problem_object = ODEProblem(Balances, initial_condition_array, time_span, parameter_dictionary)
 
             # solve -
             solution = solve(problem_object, AutoTsit5(Rosenbrock23(autodiff=false)), reltol=1e-8,abstol=1e-8)
@@ -1149,10 +1149,18 @@ function generate_driver_program_component(model::VLJuliaModelObject, ir_diction
             return (T,X)
         end
 
-        function solve_static_problem(problem_dictionary::Dict{String,Any})
-        end
+        function solve_static_problem(parameter_dictionary::Dict{String,Any}, varargs...)
 
-        
+            # Get the initial conditions -
+            initial_condition_array = problem["initial_condition_array"];
+
+            # calculate the steady-state soln -
+            steady_state_prob = SteadyStateProblem(Balances, initial_condition_array, parameter_dictionary)
+            steady_state_soln  = solve(steady_state_prob, DynamicSS(AutoTsit5(Rosenbrock23(autodiff=false)); abstol=1e-8, reltol=1e-6, tspan=Inf))
+
+            # return -
+            return abs.(steady_state_soln.u)
+        end
         """
 
         # render step -
