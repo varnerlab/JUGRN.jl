@@ -1,4 +1,4 @@
-name = "JUGRN"
+name = "JUGRNModelGenerator.jl"
 uuid = "e4cc4544-6ee8-43a1-93bd-9ed80b3dc475"
 authors = ["Jeffrey Varner <jdv27@cornell.edu>"]
 version = "0.1.0"
