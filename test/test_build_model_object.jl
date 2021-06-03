@@ -1,4 +1,4 @@
-using JUGRN
+using JUGRNModelGenerator
 
 # setup paths -
 path_to_input_file = "./test/data/Model.json"

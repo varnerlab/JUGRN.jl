@@ -1,4 +1,4 @@
-name = "JUGRNModelGenerator.jl"
+name = "JUGRNModelGenerator"
 uuid = "e4cc4544-6ee8-43a1-93bd-9ed80b3dc475"
 authors = ["Jeffrey Varner <jdv27@cornell.edu>"]
 version = "0.1.0"
@@ -17,10 +17,10 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
+BioSequences = "^2"
 DataFrames = "^1"
+FASTX = "^1"
 JSON = "^0.21.1"
-Mustache="^1"
-TOML="^1"
-BioSequences="^2"
-FASTX="^1"
+Mustache = "^1"
+TOML = "^1"
 julia = "~1.6"

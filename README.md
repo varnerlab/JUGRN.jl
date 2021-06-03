@@ -1,7 +1,7 @@
-## Gene Regulatory Network Generator in Julia (JUGRN)
+## Gene Regulatory Network Generator in Julia (JUGRNModelGenerator)
 
 ### Introduction ###
-The ``JUGRNModelGenerator.jl`` package is a code generation system that transforms simple [JSON](https://www.json.org/json-en.html) descriptions of the connectivity of gene regulatory networks into model code written in the [Julia](http://julialang.org) programming language. ``JUGRNModelGenerator.jl`` has been used in the publications:
+The ``JUGRNModelGenerator.jl`` package is a code generation system that transforms simple [JSON](https://www.json.org/json-en.html) descriptions of the connectivity of gene regulatory networks into model code written in the [Julia](http://julialang.org) programming language. ``JUGRNModelGeneratorModelGenerator.jl`` has been used in the publications:
 
 1. [Tasseff R, Jensen H, Congleton J, Dai W, Rogers K, Sagar A, Yen A and J. Varner (2017) An Effective Model of the Retinoic Acid Induced Differentiation Program, Sci Reports, 7:14327 doi:10.1038/s41598-017-14523-5](https://www.nature.com/articles/s41598-017-14523-5)
 2. [Gould R, Bassen DM, Chakrabarti A, Varner JD and Butcher J (2016) Population Heterogeneity in the Epithelial to Mesenchymal Transition Is Controlled by NFAT and Phosphorylated Sp1. PLoS Comput Biol 12(12): e1005251. doi:10.1371/journal.pcbi.1005251](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005251)
@@ -14,7 +14,7 @@ to generate gene regulatory network code.
 
 Start of the [Julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/index.html) and enter the ``package mode`` using the ``]`` key (to get back press the ``backspace`` or ``^C`` keys). Then, at the prompt enter:
 
-    (v1.1) pkg> add JUGRN
+    (v1.1) pkg> add JUGRNModelGenerator
 
 This will install the ``JUGRNModelGenerator.jl`` package and the other required packages. ``JUGRNModelGenerator.jl`` requires Julia 1.6.x and above.
 ``JUGRNModelGenerator.jl`` is open source. You can download this repository as a zip file, or clone or pull it by using the command (from the command-line):

@@ -27,13 +27,13 @@
     "list_of_model_species": [
         {
             "symbol": "gene_gntR",
-            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRN.jl/test/data/seq/gene.fna",
+            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/seq/gene.fna",
             "compartment": "system",
             "type": "DNA"
         },
         {
             "symbol": "gene_venus",
-            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRN.jl/test/data/seq/gene.fna",
+            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/seq/gene.fna",
             "compartment": "system",
             "type": "DNA"
         },
@@ -51,13 +51,13 @@
         },
         {
             "symbol": "P_gntR",
-            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRN.jl/test/data/seq/protein.faa",
+            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/seq/protein.faa",
             "compartment": "system",
             "type": "PROTEIN"
         },
         {
             "symbol": "P_venus",
-            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRN.jl/test/data/seq/protein.faa",
+            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/seq/protein.faa",
             "compartment": "system",
             "type": "PROTEIN"
         }

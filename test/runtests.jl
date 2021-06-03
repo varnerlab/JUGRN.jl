@@ -1,4 +1,4 @@
-using JUGRN
+using JUGRNModelGenerator
 using Test
 
 # -- Model creation tests ------------------------------------------------------ #

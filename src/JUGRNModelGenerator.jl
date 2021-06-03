@@ -1,4 +1,4 @@
-module JUGRN
+module JUGRNModelGenerator
 
     # include -
     include("Include.jl")
