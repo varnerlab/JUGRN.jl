@@ -10,8 +10,7 @@ The ``JUGRN.jl`` package is a code generation system that transforms simple [JSO
 to generate gene regulatory network code.
 
 ### Installation and Requirements
-``JuGRN.jl`` is organized as a [Julia](http://julialang.org) package which 
-can be installed in the ``package mode`` of Julia.
+``JUGRN.jl`` is organized as a [Julia](http://julialang.org) package which can be installed in the ``package mode`` of Julia.
 
 Start of the [Julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/index.html) and enter the ``package mode`` using the ``]`` key (to get back press the ``backspace`` or ``^C`` keys). Then, at the prompt enter:
 
