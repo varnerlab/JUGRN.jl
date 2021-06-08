@@ -62,6 +62,7 @@ function read_model_document(model::VLJuliaModelObject)::VLResult
         model_species_table = _build_species_table(json_model_dictionary)
         list_of_transcription_models = json_model_dictionary["list_of_transcription_models"]
         list_of_translation_models = json_model_dictionary["list_of_translation_models"]
+        system_type = json_model_dictionary["system"]["system_type"]
         
         # how many species do we have?
         (number_of_species, _) = size(model_species_table)
@@ -70,6 +71,7 @@ function read_model_document(model::VLJuliaModelObject)::VLResult
         intermediate_representation_dictionary["number_of_species"] = number_of_species
         intermediate_representation_dictionary["number_of_transcription_models"] = length(list_of_transcription_models)
         intermediate_representation_dictionary["number_of_translation_models"] = length(list_of_translation_models)
+        intermediate_representation_dictionary["system_type"] = system_type
 
         # Build a species table -
         intermediate_representation_dictionary["model_species_table"] = model_species_table

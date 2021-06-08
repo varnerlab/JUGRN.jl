@@ -3,6 +3,7 @@ function _build_ic_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{
     # build the text fragments -
     ic_buffer=Array{String,1}()
     default_dictionary = ir_dictionary["default_dictionary"]
+    system_type = ir_dictionary["system_type"]
 
     # go ...
     +(ic_buffer,"initial_condition_array = [";suffix="\n")
@@ -26,6 +27,14 @@ function _build_ic_array_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{
         end
 
         +(ic_buffer,"$(value)\t;\t#\t$(species_index)\t$(species_symbol)\tunits: nM\n"; prefix="\t\t\t")
+    end
+
+    # ok, if the system type is ANY type of CF_* then lets generate a translation
+    # capacity term as an extra species -
+    if (contains(system_type,"CF_") == true)
+        +(ic_buffer,"\n")
+        +(ic_buffer,"# translation capacity - \n"; prefix="\t\t\t")
+        +(ic_buffer,"100.0\t;\t#\t$(number_of_species+1)\ttranslation capacity\tunits: NA\n"; prefix="\t\t\t")
     end
 
     +(ic_buffer,"]"; prefix="\t\t")
@@ -66,12 +75,6 @@ function _build_system_species_concentration_snippet(model::VLJuliaModelObject, 
     flat_buffer = ""
     [flat_buffer *= line for line in system_buffer]
     return flat_buffer
-end
-
-function _build_sequence_length_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
-
-    # initialize - 
-
 end
 
 function _build_model_species_alias_snippet(model::VLJuliaModelObject, ir_dictionary::Dict{String,Any})::String
@@ -880,11 +883,20 @@ function generate_balances_program_component(model::VLJuliaModelObject,
     # initialize -
     filename = "Balances.jl"
     template_dictionary = Dict{String,Any}()
-
+    
     try
+
+        # do we need an extra state block -
+        system_type = ir_dictionary["system_type"]
+        extra_states_block = ""
+        if (contains(system_type, "CF_") == true)
+            number_of_species = ir_dictionary["number_of_species"]
+            extra_states_block*="dx[$(number_of_species+1)] = -(log(2)*(half_life_translation^-1))*x[$(number_of_species+1)]"
+        end
 
         # build snippets -
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
+        template_dictionary["extra_state_block"] = extra_states_block
 
         # setup the template -
         template = mt"""
@@ -919,6 +931,8 @@ function generate_balances_program_component(model::VLJuliaModelObject,
             for index = 1:number_of_states
                 dx[index] = dxdt[index]
             end
+
+            {{extra_state_block}}
         end
         """
 

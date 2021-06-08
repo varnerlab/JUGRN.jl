@@ -52,4 +52,6 @@ function Balances(dx,x, parameter_dictionary,t)
     for index = 1:number_of_states
         dx[index] = dxdt[index]
     end
+
+    dx[4] = -(log(2)*(half_life_translation^-1))*x[4]
 end

@@ -49,6 +49,9 @@ function generate_default_parameter_dictionary()::Dict{String,Any}
 			5.0	;	#	1	gene_venus	units: nM
 			0.0	;	#	2	mRNA_venus	units: nM
 			0.0	;	#	3	P_venus	units: nM
+
+			# translation capacity - 
+			100.0	;	#	4	translation capacity	units: NA
 		]
 
         # setup the system dimension -
