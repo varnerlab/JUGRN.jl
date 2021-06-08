@@ -1,7 +1,7 @@
 using JUGRNModelGenerator
 
 # setup paths -
-path_to_input_file = "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/Model.json"
+path_to_input_file = "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/Venus.json"
 path_to_output_dir = "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/generated_code"
 
 # build the model object -

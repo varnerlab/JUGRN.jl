@@ -33,55 +33,38 @@ function calculate_transcription_kinetic_limit_array(t::Float64, x::Array{Float6
     system_array = parameter_dictionary["system_concentration_array"]
     eX = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["transcription_elongation_rate"].parameter_value)       # default units: nt/s
     LX = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["characteristic_transcript_length"].parameter_value)    # default units: nt
-    k_cat_characteristic = (eX / LX)
+    k_cat_characteristic = (eX/LX)
 
     # helper function -
-    r(kcat, L_char, L, polymerase, 𝛕, K, species) = kcat * (L_char / L) * polymerase * (species / (𝛕 * K + (1 + 𝛕) * species))
+    r(kcat, L_char, L, polymerase, 𝛕, K, species) = kcat*(L_char/L)*polymerase*(species/(𝛕*K+(1+𝛕)*species))
 
     # alias the model species -
-    gene_gntR = x[1]
-	gene_venus = x[2]
-	mRNA_gntR = x[3]
-	mRNA_venus = x[4]
-	P_gntR = x[5]
-	P_venus = x[6]
+    gene_venus = x[1]
+	mRNA_venus = x[2]
+	P_venus = x[3]
 
     # alias the system species -
     RNAP = system_array[1]
 	RIBOSOME = system_array[2]
 	P_σ70 = system_array[3]
-	M_gluconate_c = system_array[4]
 
 
     # alias the system parameters -
     W_gene_venus = model_parameter_array[model_parameter_index_map[:W_gene_venus]]
 	W_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_σ70]]
-	W_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_gntR]]
 	K_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_σ70]]
 	n_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_σ70]]
-	K_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_gntR]]
-	n_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_gntR]]
-	W_gene_gntR = model_parameter_array[model_parameter_index_map[:W_gene_gntR]]
-	W_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_gntR_P_σ70]]
-	K_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_gntR_P_σ70]]
-	n_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_gntR_P_σ70]]
 	K_gene_venus = model_parameter_array[model_parameter_index_map[:K_gene_venus]]
 	𝛕_gene_venus = model_parameter_array[model_parameter_index_map[:𝛕_gene_venus]]
-	K_gene_gntR = model_parameter_array[model_parameter_index_map[:K_gene_gntR]]
-	𝛕_gene_gntR = model_parameter_array[model_parameter_index_map[:𝛕_gene_gntR]]
 	K_P_venus = model_parameter_array[model_parameter_index_map[:K_P_venus]]
 	𝛕_P_venus = model_parameter_array[model_parameter_index_map[:𝛕_P_venus]]
-	K_P_gntR = model_parameter_array[model_parameter_index_map[:K_P_gntR]]
-	𝛕_P_gntR = model_parameter_array[model_parameter_index_map[:𝛕_P_gntR]]
-	𝛳_mRNA_gntR = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_gntR]]
 	𝛳_mRNA_venus = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_venus]]
-	𝛳_P_gntR = model_parameter_array[model_parameter_index_map[:𝛳_P_gntR]]
 	𝛳_P_venus = model_parameter_array[model_parameter_index_map[:𝛳_P_venus]]
 
 
     # compute the transcription kinetic limit array -
-    push!(kinetic_limit_array, r(k_cat_characteristic, LX, 972, RNAP, 𝛕_gene_venus, K_gene_venus, gene_venus))
-	push!(kinetic_limit_array, r(k_cat_characteristic, LX, 972, RNAP, 𝛕_gene_gntR, K_gene_gntR, gene_gntR))
+    push!(kinetic_limit_array, r(k_cat_characteristic,LX,972,RNAP,𝛕_gene_venus,K_gene_venus,gene_venus))
+
 
     # return -
     return kinetic_limit_array
@@ -97,55 +80,38 @@ function calculate_translation_kinetic_limit_array(t::Float64, x::Array{Float64,
     model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
     eL = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["translation_elongation_rate"].parameter_value)         # default units: aa/s
     LL = parse(Float64, parameter_dictionary["biophysical_parameters_dictionary"]["characteristic_protein_length"].parameter_value)       # default units: aa
-    k_cat_characteristic = (eL / LL)
+    k_cat_characteristic = (eL/LL)
 
     # helper function -
-    r(kcat, L_char, L, ribosome, 𝛕, K, species) = kcat * (L_char / L) * ribosome * (species / (𝛕 * K + (1 + 𝛕) * species))
+    r(kcat, L_char, L, ribosome, 𝛕, K, species) = kcat*(L_char/L)*ribosome*(species/(𝛕*K+(1+𝛕)*species))
     
     # alias the model species -
-    gene_gntR = x[1]
-	gene_venus = x[2]
-	mRNA_gntR = x[3]
-	mRNA_venus = x[4]
-	P_gntR = x[5]
-	P_venus = x[6]
+    gene_venus = x[1]
+	mRNA_venus = x[2]
+	P_venus = x[3]
 
     # alias the system species -
     RNAP = system_array[1]
 	RIBOSOME = system_array[2]
 	P_σ70 = system_array[3]
-	M_gluconate_c = system_array[4]
 
 
     # alias the system parameters -
     W_gene_venus = model_parameter_array[model_parameter_index_map[:W_gene_venus]]
 	W_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_σ70]]
-	W_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_gntR]]
 	K_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_σ70]]
 	n_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_σ70]]
-	K_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_gntR]]
-	n_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_gntR]]
-	W_gene_gntR = model_parameter_array[model_parameter_index_map[:W_gene_gntR]]
-	W_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_gntR_P_σ70]]
-	K_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_gntR_P_σ70]]
-	n_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_gntR_P_σ70]]
 	K_gene_venus = model_parameter_array[model_parameter_index_map[:K_gene_venus]]
 	𝛕_gene_venus = model_parameter_array[model_parameter_index_map[:𝛕_gene_venus]]
-	K_gene_gntR = model_parameter_array[model_parameter_index_map[:K_gene_gntR]]
-	𝛕_gene_gntR = model_parameter_array[model_parameter_index_map[:𝛕_gene_gntR]]
 	K_P_venus = model_parameter_array[model_parameter_index_map[:K_P_venus]]
 	𝛕_P_venus = model_parameter_array[model_parameter_index_map[:𝛕_P_venus]]
-	K_P_gntR = model_parameter_array[model_parameter_index_map[:K_P_gntR]]
-	𝛕_P_gntR = model_parameter_array[model_parameter_index_map[:𝛕_P_gntR]]
-	𝛳_mRNA_gntR = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_gntR]]
 	𝛳_mRNA_venus = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_venus]]
-	𝛳_P_gntR = model_parameter_array[model_parameter_index_map[:𝛳_P_gntR]]
 	𝛳_P_venus = model_parameter_array[model_parameter_index_map[:𝛳_P_venus]]
 
     
     # compute the translation kinetic limit array -
-    push!(kinetic_limit_array, r(k_cat_characteristic, LL, 320, RIBOSOME, 𝛕_P_venus, K_P_venus, P_venus))
-	push!(kinetic_limit_array, r(k_cat_characteristic, LL, 320, RIBOSOME, 𝛕_P_gntR, K_P_gntR, P_gntR))
+    push!(kinetic_limit_array, r(k_cat_characteristic,LL,320,RIBOSOME,𝛕_P_venus,K_P_venus,mRNA_venus))
+
 
     # return -
     return kinetic_limit_array
@@ -161,44 +127,26 @@ function calculate_dilution_degradation_array(t::Float64, x::Array{Float64,1},
     model_parameter_index_map = parameter_dictionary["model_parameter_symbol_index_map"]
     
     # alias the model species -
-    gene_gntR = x[1]
-	gene_venus = x[2]
-	mRNA_gntR = x[3]
-	mRNA_venus = x[4]
-	P_gntR = x[5]
-	P_venus = x[6]
+    gene_venus = x[1]
+	mRNA_venus = x[2]
+	P_venus = x[3]
 
     # alias the system parameters -
     W_gene_venus = model_parameter_array[model_parameter_index_map[:W_gene_venus]]
 	W_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_σ70]]
-	W_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_gntR]]
 	K_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_σ70]]
 	n_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_σ70]]
-	K_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_gntR]]
-	n_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_gntR]]
-	W_gene_gntR = model_parameter_array[model_parameter_index_map[:W_gene_gntR]]
-	W_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_gntR_P_σ70]]
-	K_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_gntR_P_σ70]]
-	n_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_gntR_P_σ70]]
 	K_gene_venus = model_parameter_array[model_parameter_index_map[:K_gene_venus]]
 	𝛕_gene_venus = model_parameter_array[model_parameter_index_map[:𝛕_gene_venus]]
-	K_gene_gntR = model_parameter_array[model_parameter_index_map[:K_gene_gntR]]
-	𝛕_gene_gntR = model_parameter_array[model_parameter_index_map[:𝛕_gene_gntR]]
 	K_P_venus = model_parameter_array[model_parameter_index_map[:K_P_venus]]
 	𝛕_P_venus = model_parameter_array[model_parameter_index_map[:𝛕_P_venus]]
-	K_P_gntR = model_parameter_array[model_parameter_index_map[:K_P_gntR]]
-	𝛕_P_gntR = model_parameter_array[model_parameter_index_map[:𝛕_P_gntR]]
-	𝛳_mRNA_gntR = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_gntR]]
 	𝛳_mRNA_venus = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_venus]]
-	𝛳_P_gntR = model_parameter_array[model_parameter_index_map[:𝛳_P_gntR]]
 	𝛳_P_venus = model_parameter_array[model_parameter_index_map[:𝛳_P_venus]]
 
 
     # formulate the degradation and dilution terms -
-    	push!(degradation_dilution_array, (μ + 𝛳_mRNA_gntR) * mRNA_gntR)
-	push!(degradation_dilution_array, (μ + 𝛳_mRNA_venus) * mRNA_venus)
-	push!(degradation_dilution_array, (μ + 𝛳_P_gntR) * P_gntR)
-	push!(degradation_dilution_array, (μ + 𝛳_P_venus) * P_venus)
+    	push!(degradation_dilution_array, (μ + 𝛳_mRNA_venus)*mRNA_venus)
+	push!(degradation_dilution_array, (μ + 𝛳_P_venus)*P_venus)
 
 
     # return -

@@ -22,7 +22,17 @@
 # THE SOFTWARE.
 # ----------------------------------------------------------------------------------- #
 
-function generate_parameter_dictionary()::Dict{String,Any}
+
+function update_parameter_dictionary(parameter_dictionary::Dict{String,Any}, varargs...)::Union{Nothing, Dict{String,Any}}
+    
+    # Default: return the unmodified dictionary -
+    @info "Default implementation of update_parameter_dictionary returns unmodified dictionary"
+
+    # return parameter dictionary -
+    return parameter_dictionary
+end
+
+function generate_default_parameter_dictionary()::Dict{String,Any}
 
     # initialize -
     parameter_dictionary = Dict{String,Any}()
@@ -31,31 +41,27 @@ function generate_parameter_dictionary()::Dict{String,Any}
     try
 
         # load the stoichiometric_matrix (SM) and degradation_dilution_matrix (DM) -
-        SM = readdlm(joinpath(_PATH_TO_NETWORK, "Network.dat"))
-        DM = readdlm(joinpath(_PATH_TO_NETWORK, "Degradation.dat"))
+        SM = readdlm(joinpath(_PATH_TO_NETWORK,"Network.dat"))
+        DM = readdlm(joinpath(_PATH_TO_NETWORK,"Degradation.dat"))
 
         # build the species initial condition array -
         initial_condition_array = [
-			5.0	;	#	1	gene_gntR	units: nM
-			5.0	;	#	2	gene_venus	units: nM
-			0.0	;	#	3	mRNA_gntR	units: nM
-			0.0	;	#	4	mRNA_venus	units: nM
-			0.0	;	#	5	P_gntR	units: nM
-			0.0	;	#	6	P_venus	units: nM
+			5.0	;	#	1	gene_venus	units: nM
+			0.0	;	#	2	mRNA_venus	units: nM
+			0.0	;	#	3	P_venus	units: nM
 		]
 
         # setup the system dimension -
-    	
-		number_of_transcription_processes = 2
-		number_of_translation_processes = 2
+        	
+		number_of_transcription_processes = 1
+		number_of_translation_processes = 1
 
 
         # build the system species concentration array -
         system_concentration_array = [
 			0.07	;	#	RNAP	units: µM
-			0.07	;	#	RIBOSOME	units: µM
-			1.0	;	#	P_σ70	units: µM
-			1.0	;	#	M_gluconate_c	units: µM
+			2.3	;	#	RIBOSOME	units: µM
+			0.035	;	#	P_σ70	units: µM
 		]
 
         # get the biophysical parameters for this system type -
@@ -67,39 +73,20 @@ function generate_parameter_dictionary()::Dict{String,Any}
 			# control parameters: gene_venus
 			0.001	;	#	1	W_gene_venus
 			1.0		;	#	2	W_gene_venus_P_σ70
-			1.0		;	#	3	W_gene_venus_P_gntR
-			1.0		;	#	4	K_gene_venus_P_σ70
-			1.0		;	#	5	n_gene_venus_P_σ70
-			1.0		;	#	6	K_gene_venus_P_gntR
-			1.0		;	#	7	n_gene_venus_P_gntR
-
-			# control parameters: gene_gntR
-			0.001	;	#	8	W_gene_gntR
-			1.0		;	#	9	W_gene_gntR_P_σ70
-			1.0		;	#	10	K_gene_gntR_P_σ70
-			1.0		;	#	11	n_gene_gntR_P_σ70
+			1.0		;	#	3	K_gene_venus_P_σ70
+			1.0		;	#	4	n_gene_venus_P_σ70
 
 			# transcription kinetic limit parameters: gene_venus
-			1.0		;	#	12	K_gene_venus
-			1.0		;	#	13	𝛕_gene_venus
-
-			# transcription kinetic limit parameters: gene_gntR
-			1.0		;	#	14	K_gene_gntR
-			1.0		;	#	15	𝛕_gene_gntR
+			1.0		;	#	5	K_gene_venus
+			1.0		;	#	6	𝛕_gene_venus
 
 			# translation kinetic limit parameters: P_venus
-			1.0		;	#	16	K_P_venus
-			1.0		;	#	17	𝛕_P_venus
-
-			# translation kinetic limit parameters: P_gntR
-			1.0		;	#	18	K_P_gntR
-			1.0		;	#	19	𝛕_P_gntR
+			1.0		;	#	7	K_P_venus
+			1.0		;	#	8	𝛕_P_venus
 
 			# species degradation constants - 
-			1.0		;	#	20	𝛳_mRNA_gntR
-			1.0		;	#	21	𝛳_mRNA_venus
-			1.0		;	#	22	𝛳_P_gntR
-			1.0		;	#	23	𝛳_P_venus
+			1.0		;	#	9	𝛳_mRNA_venus
+			1.0		;	#	10	𝛳_P_venus
 		]
 
 
@@ -107,54 +94,28 @@ function generate_parameter_dictionary()::Dict{String,Any}
         model_parameter_symbol_index_map = Dict{Symbol,Int}()
 		model_parameter_symbol_index_map[:W_gene_venus] = 1
 		model_parameter_symbol_index_map[:W_gene_venus_P_σ70] = 2
-		model_parameter_symbol_index_map[:W_gene_venus_P_gntR] = 3
-		model_parameter_symbol_index_map[:K_gene_venus_P_σ70] = 4
-		model_parameter_symbol_index_map[:n_gene_venus_P_σ70] = 5
-		model_parameter_symbol_index_map[:K_gene_venus_P_gntR] = 6
-		model_parameter_symbol_index_map[:n_gene_venus_P_gntR] = 7
-		model_parameter_symbol_index_map[:W_gene_gntR] = 8
-		model_parameter_symbol_index_map[:W_gene_gntR_P_σ70] = 9
-		model_parameter_symbol_index_map[:K_gene_gntR_P_σ70] = 10
-		model_parameter_symbol_index_map[:n_gene_gntR_P_σ70] = 11
-		model_parameter_symbol_index_map[:K_gene_venus] = 12
-		model_parameter_symbol_index_map[:𝛕_gene_venus] = 13
-		model_parameter_symbol_index_map[:K_gene_gntR] = 14
-		model_parameter_symbol_index_map[:𝛕_gene_gntR] = 15
-		model_parameter_symbol_index_map[:K_P_venus] = 16
-		model_parameter_symbol_index_map[:𝛕_P_venus] = 17
-		model_parameter_symbol_index_map[:K_P_gntR] = 18
-		model_parameter_symbol_index_map[:𝛕_P_gntR] = 19
-		model_parameter_symbol_index_map[:𝛳_mRNA_gntR] = 20
-		model_parameter_symbol_index_map[:𝛳_mRNA_venus] = 21
-		model_parameter_symbol_index_map[:𝛳_P_gntR] = 22
-		model_parameter_symbol_index_map[:𝛳_P_venus] = 23
+		model_parameter_symbol_index_map[:K_gene_venus_P_σ70] = 3
+		model_parameter_symbol_index_map[:n_gene_venus_P_σ70] = 4
+		model_parameter_symbol_index_map[:K_gene_venus] = 5
+		model_parameter_symbol_index_map[:𝛕_gene_venus] = 6
+		model_parameter_symbol_index_map[:K_P_venus] = 7
+		model_parameter_symbol_index_map[:𝛕_P_venus] = 8
+		model_parameter_symbol_index_map[:𝛳_mRNA_venus] = 9
+		model_parameter_symbol_index_map[:𝛳_P_venus] = 10
 
 
         # setup the inverse parameter symbol index map -
-        inverse_model_parameter_symbol_index_map = Dict{Int,Symbol}()
+        inverse_model_parameter_symbol_index_map = Dict{Int, Symbol}()
 		inverse_model_parameter_symbol_index_map[1] = :W_gene_venus
 		inverse_model_parameter_symbol_index_map[2] = :W_gene_venus_P_σ70
-		inverse_model_parameter_symbol_index_map[3] = :W_gene_venus_P_gntR
-		inverse_model_parameter_symbol_index_map[4] = :K_gene_venus_P_σ70
-		inverse_model_parameter_symbol_index_map[5] = :n_gene_venus_P_σ70
-		inverse_model_parameter_symbol_index_map[6] = :K_gene_venus_P_gntR
-		inverse_model_parameter_symbol_index_map[7] = :n_gene_venus_P_gntR
-		inverse_model_parameter_symbol_index_map[8] = :W_gene_gntR
-		inverse_model_parameter_symbol_index_map[9] = :W_gene_gntR_P_σ70
-		inverse_model_parameter_symbol_index_map[10] = :K_gene_gntR_P_σ70
-		inverse_model_parameter_symbol_index_map[11] = :n_gene_gntR_P_σ70
-		inverse_model_parameter_symbol_index_map[12] = :K_gene_venus
-		inverse_model_parameter_symbol_index_map[13] = :𝛕_gene_venus
-		inverse_model_parameter_symbol_index_map[14] = :K_gene_gntR
-		inverse_model_parameter_symbol_index_map[15] = :𝛕_gene_gntR
-		inverse_model_parameter_symbol_index_map[16] = :K_P_venus
-		inverse_model_parameter_symbol_index_map[17] = :𝛕_P_venus
-		inverse_model_parameter_symbol_index_map[18] = :K_P_gntR
-		inverse_model_parameter_symbol_index_map[19] = :𝛕_P_gntR
-		inverse_model_parameter_symbol_index_map[20] = :𝛳_mRNA_gntR
-		inverse_model_parameter_symbol_index_map[21] = :𝛳_mRNA_venus
-		inverse_model_parameter_symbol_index_map[22] = :𝛳_P_gntR
-		inverse_model_parameter_symbol_index_map[23] = :𝛳_P_venus
+		inverse_model_parameter_symbol_index_map[3] = :K_gene_venus_P_σ70
+		inverse_model_parameter_symbol_index_map[4] = :n_gene_venus_P_σ70
+		inverse_model_parameter_symbol_index_map[5] = :K_gene_venus
+		inverse_model_parameter_symbol_index_map[6] = :𝛕_gene_venus
+		inverse_model_parameter_symbol_index_map[7] = :K_P_venus
+		inverse_model_parameter_symbol_index_map[8] = :𝛕_P_venus
+		inverse_model_parameter_symbol_index_map[9] = :𝛳_mRNA_venus
+		inverse_model_parameter_symbol_index_map[10] = :𝛳_P_venus
 
 
         # specific growth rate (default units: h^-1)

@@ -37,6 +37,8 @@ function __init__()
     Pkg.add(name="DifferentialEquations")
     Pkg.add(name="VLModelParametersDB")
     Pkg.add(name="DelimitedFiles")
+    Pkg.add(name="Plots")
+    Pkg.instantiate()
 end
 
 # init me -

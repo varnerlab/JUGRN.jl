@@ -342,6 +342,7 @@ function _build_translation_kinetic_limit_snippet(model::VLJuliaModelObject, ir_
         
         # get the input et al -
         output_string = model_dictionary["output"]
+        input_string = model_dictionary["input"]
         polymerase_symbol = model_dictionary["ribosome_symbol"]
 
         # compute the length -
@@ -350,7 +351,7 @@ function _build_translation_kinetic_limit_snippet(model::VLJuliaModelObject, ir_
         L = FASTX.FASTA.seqlen(sequence)
 
         # tmp_line = 
-        push_line = "push!(kinetic_limit_array, r(k_cat_characteristic,LL,$(L),$(polymerase_symbol),𝛕_$(output_string),K_$(output_string),$(output_string)))"
+        push_line = "push!(kinetic_limit_array, r(k_cat_characteristic,LL,$(L),$(polymerase_symbol),𝛕_$(output_string),K_$(output_string),$(input_string)))"
 
         if (index == 1)
             +(buffer,push_line; suffix="\n")
@@ -398,7 +399,7 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
 
         # process the list of activators -
         list_of_activators = model_dictionary["list_of_activators"]
-        for (activator_index, activator_dictionary) in enumerate(list_of_activators)
+        for (_, activator_dictionary) in enumerate(list_of_activators)
         
             activator_symbol = activator_dictionary["symbol"]
 
@@ -411,7 +412,7 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
 
         # process the list of repressors -
         list_of_repressors = model_dictionary["list_of_repressors"]
-        for (repressor_index, repressor_dictionary) in enumerate(list_of_repressors)
+        for (_, repressor_dictionary) in enumerate(list_of_repressors)
             
             repressor_symbol = repressor_dictionary["symbol"]
 
@@ -423,7 +424,7 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
         end
 
         # binding constant, and binding order for activators -
-        for (activator_index, activator_dictionary) in enumerate(list_of_activators)
+        for (_, activator_dictionary) in enumerate(list_of_activators)
         
             activator_symbol = activator_dictionary["symbol"]
             
@@ -439,7 +440,7 @@ function _build_model_parameter_array_snippet(model::VLJuliaModelObject, ir_dict
         end
 
         # binding constant, and binding order for repressors -
-        for (repressor_index, repressor_dictionary) in enumerate(list_of_repressors)
+        for (_, repressor_dictionary) in enumerate(list_of_repressors)
         
             repressor_symbol = repressor_dictionary["symbol"]
             +(buffer,"1.0\t\t;\t#\t$(pcounter)\tK_$(input_string)_$(repressor_symbol)\n"; prefix="\t\t\t")
@@ -668,6 +669,16 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
         # write the template -
         template=mt"""
         {{copyright_header_text}}
+
+        function update_parameter_dictionary(parameter_dictionary::Dict{String,Any}, varargs...)::Union{Nothing, Dict{String,Any}}
+            
+            # Default: return the unmodified dictionary -
+            @info "Default implementation of update_parameter_dictionary returns unmodified dictionary"
+
+            # return parameter dictionary -
+            return parameter_dictionary
+        end
+
         function generate_default_parameter_dictionary()::Dict{String,Any}
 
             # initialize -
@@ -1035,6 +1046,8 @@ function generate_init_program_component(model::VLJuliaModelObject, ir_dictionar
             Pkg.add(name="DifferentialEquations")
             Pkg.add(name="VLModelParametersDB")
             Pkg.add(name="DelimitedFiles")
+            Pkg.add(name="Plots")
+            Pkg.instantiate()
         end
 
         # init me -
@@ -1080,7 +1093,7 @@ function generate_include_program_component(model::VLJuliaModelObject, ir_dictio
         using DelimitedFiles
 
         # include my codes -
-        include("./src/Problem.jl")
+        include("./src/Parameters.jl")
         include("./src/Balances.jl")
         include("./src/Kinetics.jl")
         include("./src/Control.jl")

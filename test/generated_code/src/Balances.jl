@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 # ----------------------------------------------------------------------------------- #
 
-function Balances(dx, x, parameter_dictionary, t)
+function Balances(dx,x, parameter_dictionary,t)
 
     # system dimensions and structural matricies -
     number_of_states = parameter_dictionary["number_of_states"]
@@ -30,23 +30,23 @@ function Balances(dx, x, parameter_dictionary, t)
     SM = parameter_dictionary["stoichiometric_matrix"]
      
     # calculate the TX and TL kinetic limit array -
-    transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t, x, parameter_dictionary)
-    translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t, x, parameter_dictionary)
+    transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,parameter_dictionary)
+    translation_kinetic_limit_array = calculate_translation_kinetic_limit_array(t,x,parameter_dictionary)
     
     # calculate the TX and TL control array -
-    u = calculate_transcription_control_array(t, x, parameter_dictionary)
-    w = calculate_translation_control_array(t, x, parameter_dictionary)
+    u = calculate_transcription_control_array(t,x,parameter_dictionary)
+    w = calculate_translation_control_array(t,x,parameter_dictionary)
 
     # calculate the rate of transcription and translation -
-    rX = transcription_kinetic_limit_array .* u
-    rL = translation_kinetic_limit_array .* w
+    rX = transcription_kinetic_limit_array.*u
+    rL = translation_kinetic_limit_array.*w
     rV = [rX ; rL]
 
     # calculate the degradation and dilution rates -
-    rd = calculate_dilution_degradation_array(t, x, parameter_dictionary)
+    rd = calculate_dilution_degradation_array(t,x,parameter_dictionary)
 
     # compute the model equations -
-    dxdt = SM * rV + DM * rd
+    dxdt = SM*rV + DM*rd
 
     # package -
     for index = 1:number_of_states

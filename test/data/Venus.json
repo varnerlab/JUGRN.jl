@@ -1,0 +1,67 @@
+{
+    "system": {
+        "list_of_system_species": [
+            {
+                "symbol": "RNAP",
+                "concentration": 0.07,
+                "units": "µM"
+            },
+            {
+                "symbol": "RIBOSOME",
+                "concentration": 2.3,
+                "units": "µM"
+            },
+            {
+                "symbol": "P_σ70",
+                "concentration": 0.035,
+                "units": "µM"
+            }
+        ],
+        "system_type": "CF_TXTL"
+    },
+    "list_of_model_species": [
+        {
+            "symbol": "gene_venus",
+            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/seq/gene.fna",
+            "compartment": "system",
+            "type": "DNA"
+        },
+        {
+            "symbol": "mRNA_venus",
+            "sequence": "",
+            "compartment": "system",
+            "type": "RNA"
+        },
+        {
+            "symbol": "P_venus",
+            "sequence": "/Users/jeffreyvarner/Desktop/julia_work/JUGRNModelGenerator.jl/test/data/seq/protein.faa",
+            "compartment": "system",
+            "type": "PROTEIN"
+        }
+    ],
+    "list_of_transcription_models": [
+        {
+            "title": "venus_promoter",
+            "polymerase_symbol": "RNAP",
+            "input": "gene_venus",
+            "output": "mRNA_venus",
+            "compartment": "system",
+            "list_of_activators": [
+                {
+                    "symbol": "P_σ70",
+                    "type": "positive_sigma_factor"
+                }
+            ],
+            "list_of_repressors": []
+        }
+    ],
+    "list_of_translation_models": [
+        {
+            "ribosome_symbol": "RIBOSOME",
+            "title": "translation_mRNA_venus",
+            "output": "P_venus",
+            "input": "mRNA_venus",
+            "compartment": "system"
+        }
+    ]
+}

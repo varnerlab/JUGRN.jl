@@ -34,48 +34,31 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
     u_array = Array{Float64,1}()
 
     # local helper functions -
-    f(x, K, n) = (x^n) / (K^n + x^n)
-    u(A, R) = A / (1 + A + R)
+    f(x,K,n) = (x^n)/(K^n+x^n)
+    u(A,R) = A/(1+A+R)
 
     # alias the state vector -
-    gene_gntR = x[1]
-	gene_venus = x[2]
-	mRNA_gntR = x[3]
-	mRNA_venus = x[4]
-	P_gntR = x[5]
-	P_venus = x[6]
+    gene_venus = x[1]
+	mRNA_venus = x[2]
+	P_venus = x[3]
 
     # alias the system species -
     system_array = parameter_dictionary["system_concentration_array"]
     RNAP = system_array[1]
 	RIBOSOME = system_array[2]
 	P_σ70 = system_array[3]
-	M_gluconate_c = system_array[4]
 
 
     # alias the system parameters -
     W_gene_venus = model_parameter_array[model_parameter_index_map[:W_gene_venus]]
 	W_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_σ70]]
-	W_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:W_gene_venus_P_gntR]]
 	K_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_σ70]]
 	n_gene_venus_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_σ70]]
-	K_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:K_gene_venus_P_gntR]]
-	n_gene_venus_P_gntR = model_parameter_array[model_parameter_index_map[:n_gene_venus_P_gntR]]
-	W_gene_gntR = model_parameter_array[model_parameter_index_map[:W_gene_gntR]]
-	W_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:W_gene_gntR_P_σ70]]
-	K_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:K_gene_gntR_P_σ70]]
-	n_gene_gntR_P_σ70 = model_parameter_array[model_parameter_index_map[:n_gene_gntR_P_σ70]]
 	K_gene_venus = model_parameter_array[model_parameter_index_map[:K_gene_venus]]
 	𝛕_gene_venus = model_parameter_array[model_parameter_index_map[:𝛕_gene_venus]]
-	K_gene_gntR = model_parameter_array[model_parameter_index_map[:K_gene_gntR]]
-	𝛕_gene_gntR = model_parameter_array[model_parameter_index_map[:𝛕_gene_gntR]]
 	K_P_venus = model_parameter_array[model_parameter_index_map[:K_P_venus]]
 	𝛕_P_venus = model_parameter_array[model_parameter_index_map[:𝛕_P_venus]]
-	K_P_gntR = model_parameter_array[model_parameter_index_map[:K_P_gntR]]
-	𝛕_P_gntR = model_parameter_array[model_parameter_index_map[:𝛕_P_gntR]]
-	𝛳_mRNA_gntR = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_gntR]]
 	𝛳_mRNA_venus = model_parameter_array[model_parameter_index_map[:𝛳_mRNA_venus]]
-	𝛳_P_gntR = model_parameter_array[model_parameter_index_map[:𝛳_P_gntR]]
 	𝛳_P_venus = model_parameter_array[model_parameter_index_map[:𝛳_P_venus]]
 
 
@@ -89,36 +72,13 @@ function calculate_transcription_control_array(t::Float64, x::Array{Float64,1},
 	]
 	gene_venus_activator_array = Array{Float64,1}()
 	push!(gene_venus_activator_array, 1.0)
-	P_σ70_RNAP = RNAP * f(P_σ70, K_gene_venus_P_σ70, n_gene_venus_P_σ70)
+	P_σ70_RNAP = RNAP*f(P_σ70,K_gene_venus_P_σ70,n_gene_venus_P_σ70)
 	push!(gene_venus_activator_array, P_σ70_RNAP)
-	A = sum(W .* gene_venus_activator_array)
+	A = sum(W.*gene_venus_activator_array)
 
 	# gene_venus repression - 
-	W = [
-			W_gene_venus_P_gntR	;
-	]
-	gene_venus_repressor_array = Array{Float64,1}()
-	P_gntR_active = P_gntR * (1.0 - f(M_gluconate_c, K_gene_venus_P_gntR, n_gene_venus_P_gntR))
-	push!(gene_venus_repressor_array, P_gntR_active)
-	R = sum(W .* gene_venus_repressor_array)
-	push!(u_array, u(A, R))
-
-	
-	# - gene_gntR --------------------------------------------------------------------------------------------- 
-	# gene_gntR activation - 
-	W = [
-			W_gene_gntR	;
-			W_gene_gntR_P_σ70	;
-	]
-	gene_gntR_activator_array = Array{Float64,1}()
-	push!(gene_gntR_activator_array, 1.0)
-	P_σ70_RNAP = RNAP * f(P_σ70, K_gene_gntR_P_σ70, n_gene_gntR_P_σ70)
-	push!(gene_gntR_activator_array, P_σ70_RNAP)
-	A = sum(W .* gene_gntR_activator_array)
-
-	# gene_gntR repression - 
 	R = 0.0
-	push!(u_array, u(A, R))
+	push!(u_array, u(A,R))
 
 
     # == CONTROL LOGIC ABOVE ================================================================= #
