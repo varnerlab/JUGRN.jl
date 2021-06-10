@@ -88,8 +88,8 @@ function generate_default_parameter_dictionary()::Dict{String,Any}
 			1.0		;	#	8	𝛕_P_venus
 
 			# species degradation constants - 
-			1.0		;	#	9	𝛳_mRNA_venus
-			1.0		;	#	10	𝛳_P_venus
+			0.001		;	#	9	𝛳_mRNA_venus
+			0.0001		;	#	10	𝛳_P_venus
 		]
 
 
@@ -124,6 +124,10 @@ function generate_default_parameter_dictionary()::Dict{String,Any}
         # specific growth rate (default units: h^-1)
         μ = 0.0 # default units: h^-1
 
+        # translation capacity half-life (default units: h^-1) -
+		half_life_translation_capacity=value(biophysical_parameters_dictionary,string(:half_life_translation_capacity))	# units: h^-1
+		half_life_translation_capacity = half_life_translation_capacity*(3600)
+
         # == DO NOT EDIT BELOW THIS LINE ========================================================== #
         parameter_dictionary["initial_condition_array"] = initial_condition_array
         parameter_dictionary["number_of_states"] = length(initial_condition_array)
@@ -137,6 +141,7 @@ function generate_default_parameter_dictionary()::Dict{String,Any}
         parameter_dictionary["stoichiometric_matrix"] = SM
         parameter_dictionary["dilution_degradation_matrix"] = DM
         parameter_dictionary["specific_growth_rate"] = μ
+        parameter_dictionary["half_life_translation_capacity"] = half_life_translation_capacity
 
         # return -
         return parameter_dictionary

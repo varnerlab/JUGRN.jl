@@ -654,12 +654,26 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
 
     try 
 
+        # what is the system type?
+        system_type = ir_dictionary["system_type"]
+
+        # small snippet -
+        translation_half_life_block=""
+        if (contains(system_type, "CF_") == true)
+            translation_half_life_block*="# translation capacity half-life (default units: h^-1) -\n"
+            translation_half_life_block*="\t\thalf_life_translation_capacity=value(biophysical_parameters_dictionary,:half_life_translation_capacity)\t# units: h^-1\n"
+        else
+            translation_half_life_block*="# translation capacity half-life (default units: h^-1) -\n"
+            translation_half_life_block*="\t\thalf_life_translation_capacity=1000.0\t# units: h^-1\n"
+        end
+
         # build the snippets required by the 
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
         template_dictionary["initial_condition_array_block"] = _build_ic_array_snippet(model, ir_dictionary)
         template_dictionary["system_species_array_block"] = _build_system_species_concentration_snippet(model, ir_dictionary)
         template_dictionary["system_type_flag"] = _build_system_type_snippet(model, ir_dictionary)
         template_dictionary["system_dimension_block"] = _build_system_dimension_block(model, ir_dictionary)
+        template_dictionary["translation_half_life_snippet"] = translation_half_life_block
         
         # we get the parameter array back in addition 2 the flat buffer for this method -
         results_tuple = _build_model_parameter_array_snippet(model, ir_dictionary)
@@ -718,6 +732,8 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
                 # specific growth rate (default units: h^-1)
                 μ = 0.0 # default units: h^-1
 
+                {{translation_half_life_snippet}}
+
                 # == DO NOT EDIT BELOW THIS LINE ========================================================== #
                 parameter_dictionary["initial_condition_array"] = initial_condition_array
                 parameter_dictionary["number_of_states"] = length(initial_condition_array)
@@ -731,6 +747,7 @@ function generate_data_dictionary_program_component(model::VLJuliaModelObject,
                 parameter_dictionary["stoichiometric_matrix"] = SM
                 parameter_dictionary["dilution_degradation_matrix"] = DM
                 parameter_dictionary["specific_growth_rate"] = μ
+                parameter_dictionary["half_life_translation_capacity"] = half_life_translation_capacity
 
                 # return -
                 return parameter_dictionary
@@ -891,7 +908,8 @@ function generate_balances_program_component(model::VLJuliaModelObject,
         extra_states_block = ""
         if (contains(system_type, "CF_") == true)
             number_of_species = ir_dictionary["number_of_species"]
-            extra_states_block*="dx[$(number_of_species+1)] = -(log(2)*(half_life_translation^-1))*x[$(number_of_species+1)]"
+            extra_states_block*="# extra species: global translation capacity -\n"
+            extra_states_block*="\tdx[$(number_of_species+1)] = -(log(2)*(half_life_translation^-1))*x[$(number_of_species+1)]"
         end
 
         # build snippets -
@@ -907,6 +925,7 @@ function generate_balances_program_component(model::VLJuliaModelObject,
             number_of_states = parameter_dictionary["number_of_states"]
             DM = parameter_dictionary["dilution_degradation_matrix"]
             SM = parameter_dictionary["stoichiometric_matrix"]
+            half_life_translation = parameter_dictionary["half_life_translation_capacity"]
              
             # calculate the TX and TL kinetic limit array -
             transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,parameter_dictionary)
@@ -958,9 +977,24 @@ function generate_control_program_component(model::VLJuliaModelObject,
 
     try
 
+        # what system type do we have?
+        system_type = ir_dictionary["system_type"]
+        number_of_species = ir_dictionary["number_of_species"]
+
         # we get the parameter array back in addition 2 the flat buffer for this method -
         results_tuple = _build_model_parameter_array_snippet(model, ir_dictionary)
         parameter_symbol_array = results_tuple.parameter_symbol_array
+
+        # formulate the translation control block -
+        translation_control_block_buffer=""
+        if (contains(system_type,"CF_") == true)
+            translation_control_block_buffer*="# translation decay: translation capacity decays over time -\n"
+            translation_control_block_buffer*="\tcorrection_term = (x[$(number_of_species+1)]*(100.0^-1))\n"
+            translation_control_block_buffer*="\tw = ones(number_of_translation_processes).*(correction_term)\n"
+        else
+            translation_control_block_buffer*="# default: w = 1 for all translation processes -\n"
+            translation_control_block_buffer*="\tw = ones(number_of_translation_processes)\n"
+        end
 
         # build snippets -
         template_dictionary["copyright_header_text"] = build_julia_copyright_header_buffer(ir_dictionary)
@@ -968,6 +1002,7 @@ function generate_control_program_component(model::VLJuliaModelObject,
         template_dictionary["model_species_alias_block"] = _build_model_species_alias_snippet(model, ir_dictionary)
         template_dictionary["system_species_alias_block"] = _build_system_species_alias_snippet(model, ir_dictionary)
         template_dictionary["system_parameter_alias_block"] = _build_parameter_alias_snippet(parameter_symbol_array)
+        template_dictionary["translation_control_variable_snippet"] = translation_control_block_buffer
 
         # build template -
         template=mt"""
@@ -1009,9 +1044,11 @@ function generate_control_program_component(model::VLJuliaModelObject,
         function calculate_translation_control_array(t::Float64, x::Array{Float64,1}, 
             parameter_dictionary::Dict{String,Any})::Array{Float64,1}
             
-            # defualt: w = 1 for all translation processes -
+            # initialize -
             number_of_translation_processes = parameter_dictionary["number_of_translation_processes"]
-            w = ones(number_of_translation_processes)
+            
+            # encode: encode the w-variables -
+            {{translation_control_variable_snippet}}
             
             # return -
             return w
@@ -1105,6 +1142,7 @@ function generate_include_program_component(model::VLJuliaModelObject, ir_dictio
         using DifferentialEquations
         using VLModelParametersDB
         using DelimitedFiles
+        using Plots
 
         # include my codes -
         include("./src/Parameters.jl")

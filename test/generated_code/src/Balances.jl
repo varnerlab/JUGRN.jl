@@ -28,6 +28,7 @@ function Balances(dx,x, parameter_dictionary,t)
     number_of_states = parameter_dictionary["number_of_states"]
     DM = parameter_dictionary["dilution_degradation_matrix"]
     SM = parameter_dictionary["stoichiometric_matrix"]
+    half_life_translation = parameter_dictionary["half_life_translation_capacity"]
      
     # calculate the TX and TL kinetic limit array -
     transcription_kinetic_limit_array = calculate_transcription_kinetic_limit_array(t,x,parameter_dictionary)
@@ -53,5 +54,6 @@ function Balances(dx,x, parameter_dictionary,t)
         dx[index] = dxdt[index]
     end
 
-    dx[4] = -(log(2)*(half_life_translation^-1))*x[4]
+    # extra species: global translation capacity -
+	dx[4] = -(log(2)*(half_life_translation^-1))*x[4]
 end

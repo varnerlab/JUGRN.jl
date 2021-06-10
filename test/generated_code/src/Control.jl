@@ -91,9 +91,14 @@ end
 function calculate_translation_control_array(t::Float64, x::Array{Float64,1}, 
     parameter_dictionary::Dict{String,Any})::Array{Float64,1}
     
-    # defualt: w = 1 for all translation processes -
+    # initialize -
     number_of_translation_processes = parameter_dictionary["number_of_translation_processes"]
-    w = ones(number_of_translation_processes)
+    
+    # encode: encode the w-variables -
+    # translation decay: translation capacity decays over time -
+	correction_term = (x[4]*(100.0^-1))
+	w = ones(number_of_translation_processes).*(correction_term)
+
     
     # return -
     return w

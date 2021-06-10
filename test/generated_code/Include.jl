@@ -32,6 +32,7 @@ const _PATH_TO_NETWORK = joinpath(_PATH_TO_SRC, "network")
 using DifferentialEquations
 using VLModelParametersDB
 using DelimitedFiles
+using Plots
 
 # include my codes -
 include("./src/Parameters.jl")
