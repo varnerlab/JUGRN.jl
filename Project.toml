@@ -1,7 +1,7 @@
 name = "JUGRNModelGenerator"
 uuid = "e4cc4544-6ee8-43a1-93bd-9ed80b3dc475"
 authors = ["Jeffrey Varner <jdv27@cornell.edu>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 BioSequences = "7e6ae17a-c86d-528c-b3b9-7f778a29fe59"
